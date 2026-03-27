@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
-import { Plus, ListChecks, ChevronRight } from "lucide-react";
+import { TrainingSheet } from "@/types";
+import { Plus, ChevronRight, ListChecks } from "lucide-react";
 
 const styles = {
   container: {
@@ -75,7 +76,7 @@ const styles = {
 
 export default function FichasPage() {
   const router = useRouter();
-  const [sheets, setSheets] = useState<any[]>([]);
+  const [sheets, setSheets] = useState<TrainingSheet[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import SetControls from "@/components/SetControls";
 import ExerciseList from "@/components/ExerciseList";
 import ErrorMessage from "@/components/ErrorMessage";
+import { WorkoutSession, Exercise, SessionSet, TrainingDay } from "@/types";
 import { Check, Timer } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -181,15 +182,15 @@ export default function WorkoutSessionPage() {
   const { sessionId } = useParams();
   const router = useRouter();
   
-  const [session, setSession] = useState<any>(null);
-  const [exercises, setExercises] = useState<any[]>([]);
+  const [session, setSession] = useState<(WorkoutSession & { training_days: TrainingDay | null }) | null>(null);
+  const [exercises, setExercises] = useState<(Exercise & { completedSets: number })[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [currentReps, setCurrentReps] = useState(12);
   const [currentWeight, setCurrentWeight] = useState(20);
   const [elapsed, setElapsed] = useState(0);
   const [showAnimation, setShowAnimation] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
-  const [completedSetsInActive, setCompletedSetsInActive] = useState<any[]>([]);
+  const [completedSetsInActive, setCompletedSetsInActive] = useState<SessionSet[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -371,7 +372,7 @@ export default function WorkoutSessionPage() {
                   }}
                 >
                   {isDone ? <Check size={18} /> : isActive ? "AGORA" : num}
-                  {isDone && <span style={styles.doneWeight}>{completedData.weight_used_kg}kg</span>}
+                  {isDone && <span style={styles.doneWeight}>{completedData?.weight_used_kg}kg</span>}
                 </div>
               );
             })}
@@ -396,9 +397,9 @@ export default function WorkoutSessionPage() {
         </div>
       )}
 
-      {showTimer && (
+      {showTimer && currentExercise && (
         <RestTimer
-          seconds={parseInt(currentExercise?.rest_seconds) || 60}
+          seconds={parseInt(currentExercise.rest_seconds || "60")}
           onSkip={handleTimerFinish}
           onFinish={handleTimerFinish}
         />

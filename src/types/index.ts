@@ -43,6 +43,7 @@ export interface WorkoutSession {
   started_at: string
   finished_at: string | null
   notes: string | null
+  training_days?: TrainingDay | null
 }
 
 export interface SessionSet {

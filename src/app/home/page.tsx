@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import ErrorMessage from "@/components/ErrorMessage";
-import { Profile, TrainingDay } from "@/types";
+import { Profile, TrainingDay, WorkoutSession } from "@/types";
 import { PlayCircle, Clock, Dumbbell, ChevronRight } from "lucide-react";
 
 const styles = {
@@ -144,7 +144,7 @@ export default function HomePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [nextWorkout, setNextWorkout] = useState<TrainingDay | null>(null);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 

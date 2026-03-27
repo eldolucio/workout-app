@@ -1,15 +1,9 @@
 "use client";
 
 import { CheckCircle2, Circle } from "lucide-react";
+import { Exercise as DBExercise } from "@/types";
 
-interface Exercise {
-  id: string;
-  name: string;
-  muscle_group: string;
-  sets: number;
-  reps: string;
-  completedSets?: number;
-}
+type Exercise = DBExercise & { completedSets?: number };
 
 interface Props {
   exercises: Exercise[];
