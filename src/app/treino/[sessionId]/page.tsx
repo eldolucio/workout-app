@@ -1,13 +1,23 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useParams, useRouter } from "next/navigation";
-import ExerciseAnimation from "@/components/ExerciseAnimation";
-import RestTimer from "@/components/RestTimer";
 import SetControls from "@/components/SetControls";
 import ExerciseList from "@/components/ExerciseList";
-import { Check, X, Timer, ChevronRight, Trophy } from "lucide-react";
+import ErrorMessage from "@/components/ErrorMessage";
+import { Check, Timer } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const ExerciseAnimation = dynamic(
+  () => import("@/components/ExerciseAnimation"),
+  { ssr: false, loading: () => <span style={{ color: '#555', fontFamily: 'Barlow Condensed' }}>Carregando animação...</span> }
+);
+
+const RestTimer = dynamic(
+  () => import("@/components/RestTimer"),
+  { ssr: false, loading: () => <span style={{ color: '#555', fontFamily: 'Barlow Condensed' }}>Carregando timer...</span> }
+);
 
 const styles = {
   container: {
@@ -181,27 +191,47 @@ export default function WorkoutSessionPage() {
   const [showTimer, setShowTimer] = useState(false);
   const [completedSetsInActive, setCompletedSetsInActive] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Load session
   useEffect(() => {
     const loadSession = async () => {
-      const { data: sess } = await supabase.from("workout_sessions").select("*, training_days(*)").eq("id", sessionId).single();
-      if (sess) {
-        setSession(sess);
-        const { data: exers } = await supabase.from("exercises").select("*").eq("day_id", sess.training_day_id).order("order_index", { ascending: true });
-        setExercises(exers || []);
+      try {
+        setLoading(true);
+        const { data: sess, error: sessError } = await supabase.from("workout_sessions").select("*, training_days(*)").eq("id", sessionId).single();
+        if (sessError) {
+          console.error('[supabase] workout_sessions.select:', sessError.message);
+          throw new Error('Falha ao carregar sessão.');
+        }
 
-        // Load existing sets for this session
-        const { data: existingSets } = await supabase.from("session_sets").select("*").eq("session_id", sessionId);
-        
-        const enriched = exers?.map(ex => ({
-          ...ex,
-          completedSets: existingSets?.filter(s => s.exercise_id === ex.id).length || 0
-        }));
-        
-        setExercises(enriched || []);
+        if (sess) {
+          setSession(sess);
+          const { data: exers, error: exersError } = await supabase.from("exercises").select("*").eq("day_id", sess.training_day_id).order("order_index", { ascending: true });
+          if (exersError) {
+             console.error('[supabase] exercises.select:', exersError.message);
+             throw new Error('Falha ao carregar exercícios.');
+          }
+          
+          setExercises(exers || []);
+
+          // Load existing sets for this session
+          const { data: existingSets, error: setsError } = await supabase.from("session_sets").select("*").eq("session_id", sessionId);
+          if (setsError) {
+             console.error('[supabase] session_sets.select:', setsError.message);
+          }
+          
+          const enriched = exers?.map(ex => ({
+            ...ex,
+            completedSets: existingSets?.filter(s => s.exercise_id === ex.id).length || 0
+          }));
+          
+          setExercises(enriched || []);
+        }
+      } catch (e) {
+         setErrorMsg(e instanceof Error ? e.message : 'Erro desconhecido');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     loadSession();
   }, [sessionId]);
@@ -245,6 +275,12 @@ export default function WorkoutSessionPage() {
       weight_used_kg: currentWeight,
       completed: true,
     }).select().single();
+
+    if (error) {
+       console.error('[supabase] session_sets.insert:', error.message);
+       setErrorMsg(error.message);
+       return;
+    }
 
     if (newSet) {
       const updatedSets = [...completedSetsInActive, newSet];
@@ -291,6 +327,8 @@ export default function WorkoutSessionPage() {
           <span>{formatTime(elapsed)}</span>
         </div>
       </header>
+
+      {errorMsg && <ErrorMessage message={errorMsg} />}
 
       <span style={styles.progressLabel}>Progresso da Sessão</span>
       <div style={styles.progressContainer}>

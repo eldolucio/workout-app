@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
+import ErrorMessage from "@/components/ErrorMessage";
+import { Profile, TrainingDay } from "@/types";
 import { PlayCircle, Clock, Dumbbell, ChevronRight } from "lucide-react";
 
 const styles = {
@@ -140,10 +142,11 @@ const styles = {
 
 export default function HomePage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<any>(null);
-  const [nextWorkout, setNextWorkout] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [nextWorkout, setNextWorkout] = useState<TrainingDay | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const getWeekday = () => {
     return new Intl.DateTimeFormat("pt-BR", { weekday: "long" }).format(new Date());
@@ -151,28 +154,44 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login");
-        return;
+      try {
+        setLoading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push("/login");
+          return;
+        }
+
+        // Profile
+        const { data: prof, error: profError } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        if (profError) {
+          console.error('[supabase] profiles.select:', profError.message);
+        } else {
+          setProfile(prof);
+        }
+
+        // Next Workout (Training Day)
+        const { data: sheet, error: sheetError } = await supabase.from("training_sheets").select("id").eq("user_id", user.id).eq("is_active", true).single();
+        if (sheetError) console.error('[supabase] training_sheets.select:', sheetError.message);
+        
+        if (sheet) {
+          const { data: days, error: daysError } = await supabase.from("training_days").select("*, exercises(count)").eq("sheet_id", sheet.id).order("order_index", { ascending: true }).limit(1);
+          if (daysError) console.error('[supabase] training_days.select:', daysError.message);
+          if (days && days[0]) setNextWorkout(days[0]);
+        }
+
+        // History
+        const { data: hist, error: histError } = await supabase.from("workout_sessions").select("*, training_days(label)").eq("user_id", user.id).order("started_at", { ascending: false }).limit(3);
+        if (histError) {
+          console.error('[supabase] workout_sessions.select:', histError.message);
+        } else {
+          setHistory(hist || []);
+        }
+      } catch (e) {
+         setErrorMsg(e instanceof Error ? e.message : 'Erro desconhecido');
+      } finally {
+        setLoading(false);
       }
-
-      // Profile
-      const { data: prof } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-      setProfile(prof);
-
-      // Next Workout (Training Day)
-      const { data: sheet } = await supabase.from("training_sheets").select("id").eq("user_id", user.id).eq("is_active", true).single();
-      if (sheet) {
-        const { data: days } = await supabase.from("training_days").select("*, exercises(count)").eq("sheet_id", sheet.id).order("order_index", { ascending: true }).limit(1);
-        if (days && days[0]) setNextWorkout(days[0]);
-      }
-
-      // History
-      const { data: hist } = await supabase.from("workout_sessions").select("*, training_days(label)").eq("user_id", user.id).order("started_at", { ascending: false }).limit(3);
-      setHistory(hist || []);
-      
-      setLoading(false);
     };
 
     fetchData();
@@ -192,6 +211,12 @@ export default function HomePage() {
       .select()
       .single();
 
+    if (error) {
+      console.error('[supabase] insert workout session:', error.message);
+      setErrorMsg(error.message);
+      return;
+    }
+
     if (session) {
       router.push(`/treino/${session.id}`);
     }
@@ -205,6 +230,8 @@ export default function HomePage() {
         <span style={styles.greeting}>Olá, {profile?.name || "atleta"}</span>
         <span style={styles.weekday}>{getWeekday()}</span>
       </header>
+
+      {errorMsg && <ErrorMessage message={errorMsg} />}
 
       {nextWorkout ? (
         <div style={styles.highlightCard}>

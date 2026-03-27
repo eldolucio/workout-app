@@ -1,6 +1,5 @@
 "use client";
 
-import React from 'react';
 
 type AnimationType = 'Puxada Frente' | 'Supino Reto' | 'Agachamento' | 'Rosca Direta' | 'Remada Curvada' | 'Desenvolvimento' | string;
 

@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { CheckCircle2, Circle } from "lucide-react";
 
 interface Exercise {

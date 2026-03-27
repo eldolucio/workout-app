@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-import { Upload, CheckCircle2, Loader2, FileImage } from "lucide-react";
+import { Upload, CheckCircle2, Loader2 } from "lucide-react";
 
 const styles = {
   container: {
@@ -95,7 +95,7 @@ const STEPS = [
 export default function ImportSheetPage() {
   const [uploading, setUploading] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
-  const [file, setFile] = useState<File | null>(null);
+  const [, setFile] = useState<File | null>(null);
   const router = useRouter();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

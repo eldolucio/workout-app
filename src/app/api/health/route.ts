@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('profiles')
     .select('id')
     .limit(1)

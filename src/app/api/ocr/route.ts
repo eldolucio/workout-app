@@ -9,8 +9,17 @@ const supabase = createClient(
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+import { createClient as createServerClient } from "@/lib/supabase-server";
+
 export async function POST(req: Request) {
   try {
+    const supabaseServer = await createServerClient();
+    const { data: { session } } = await supabaseServer.auth.getSession();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
     const { bucketPath, userId, name } = await req.json();
 
     // 1. Gerar URL assinada (válida por 1 hora)
