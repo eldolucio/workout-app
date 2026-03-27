@@ -13,12 +13,14 @@ export async function POST(req: Request) {
   try {
     const { bucketPath, userId, name } = await req.json();
 
-    // 1. Generate Signed URL (valid 1h)
-    const { data: { signedUrl }, error: signedError } = await supabase.storage
+    // 1. Gerar URL assinada (válida por 1 hora)
+    const { data, error: signedError } = await supabase.storage
       .from("workout-sheets")
       .createSignedUrl(bucketPath, 3600);
 
-    if (signedError) throw signedError;
+    if (signedError || !data) throw signedError || new Error("Falha ao gerar URL assinada");
+
+    const signedUrl = data.signedUrl;
 
     // 2. Call GPT-4o Vision
     const response = await openai.chat.completions.create({
