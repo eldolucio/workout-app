@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import NavBar from "@/components/NavBar";
-import Image from "next/image";
+import heic2any from "heic2any";
 import { Camera, Edit2, Lock, ClipboardList, History, LogOut, ArrowLeft } from "lucide-react";
 
 export default function PerfilPage() {
@@ -70,30 +70,49 @@ export default function PerfilPage() {
   }, [router]);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    let file = e.target.files?.[0];
     if (!file || !userAuth) return;
+
+    setUploadingAvatar(true);
+    setErrorMsg(null);
+
+    // Converte HEIC para JPG para compatibilidade universal
+    if (file.name.toLowerCase().endsWith(".heic") || file.type === "image/heic") {
+      try {
+        const convertedBlob = await heic2any({ 
+          blob: file, 
+          toType: "image/jpeg",
+          quality: 0.8 
+        });
+        const converted = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+        file = new File([converted], "avatar.jpg", { type: "image/jpeg" });
+      } catch (convErr) {
+        console.error('[perfil] conversion error:', convErr);
+      }
+    }
 
     if (file.size > 2 * 1024 * 1024) {
       setErrorMsg("Imagem muito grande. Máximo 2MB.");
+      setUploadingAvatar(false);
       return;
     }
     if (!file.type.startsWith("image/")) {
       setErrorMsg("Selecione uma imagem válida.");
+      setUploadingAvatar(false);
       return;
     }
 
-    setUploadingAvatar(true);
-    setErrorMsg(null);
-    const ext = file.name.split(".").pop();
-    const path = `${userAuth.id}/avatar.${ext}`;
+    const path = `${userAuth.id}/avatar.jpg`; // Fix path to JPG
 
+    // Limpa versões antigas
     await supabase.storage.from("avatars").remove([
       `${userAuth.id}/avatar.jpg`,
       `${userAuth.id}/avatar.png`,
-      `${userAuth.id}/avatar.webp`
+      `${userAuth.id}/avatar.webp`,
+      `${userAuth.id}/avatar.heic`
     ]);
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from("avatars")
       .upload(path, file, { upsert: true });
 
@@ -104,11 +123,7 @@ export default function PerfilPage() {
       return;
     }
 
-    console.log('[perfil] upload success:', uploadData);
-
     const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
-
-    // Force public bypass cache by appending timestamp
     const cUrl = `${publicUrl}?t=${Date.now()}`;
 
     const { error: updateError } = await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", userAuth.id);
@@ -120,7 +135,6 @@ export default function PerfilPage() {
       return;
     }
 
-    console.log('[perfil] database update success');
     setProfile((prev: any) => ({ ...prev, avatar_url: cUrl }));
     setUploadingAvatar(false);
   };
