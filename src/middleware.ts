@@ -1,7 +1,16 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function proxy(request: NextRequest) {
+const PUBLIC_PATHS = [
+  '/login',
+  '/cadastro',
+  '/confirmar',
+  '/esqueci-senha',
+  '/nova-senha',
+  '/auth/callback',
+]
+
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -54,13 +63,26 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const path = request.nextUrl.pathname
+  const isPublic = PUBLIC_PATHS.some((p) => path.startsWith(p))
+
+  if (!user && !isPublic) {
+    const redirect = new URL('/login', request.url)
+    redirect.searchParams.set('next', path)
+    return NextResponse.redirect(redirect)
+  }
+
+  if (user && (path === '/login' || path === '/cadastro')) {
+    return NextResponse.redirect(new URL('/home', request.url))
+  }
 
   return response
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
