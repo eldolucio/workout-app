@@ -321,7 +321,7 @@ export default function HomePage() {
         <div style={styles.avatarDropdownContainer} ref={menuRef}>
           <div style={styles.headerAvatar} onClick={() => setMenuOpen(!menuOpen)}>
             {profile?.avatar_url ? (
-              <Image src={profile.avatar_url} alt="User" width={44} height={44} style={styles.headerAvatarImage} unoptimized />
+              <img src={profile.avatar_url} alt="User" style={styles.headerAvatarImage} />
             ) : (
               initials
             )}

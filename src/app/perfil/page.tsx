@@ -138,7 +138,7 @@ export default function PerfilPage() {
       <div style={styles.avatarSection}>
         <div style={styles.avatarContainer}>
           {profile?.avatar_url ? (
-            <Image src={profile.avatar_url} alt="Avatar" width={88} height={88} style={styles.avatarImage} unoptimized />
+            <img src={profile.avatar_url} alt="Avatar" style={styles.avatarImage} />
           ) : (
             <div style={styles.avatarPlaceholder}>{initials}</div>
           )}
