@@ -1,6 +1,7 @@
 export interface Profile {
   id: string
   name: string | null
+  avatar_url: string | null
   weight_kg: number | null
   height_cm: number | null
   created_at: string

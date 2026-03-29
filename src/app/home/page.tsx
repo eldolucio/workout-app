@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import ErrorMessage from "@/components/ErrorMessage";
 import { Profile, TrainingDay, WorkoutSession } from "@/types";
-import { PlayCircle, Clock, Dumbbell, ChevronRight } from "lucide-react";
+import { PlayCircle, Clock, Dumbbell, ChevronRight, LogOut, User } from "lucide-react";
+import Image from "next/image";
 
 const styles = {
   container: {
@@ -16,6 +17,13 @@ const styles = {
   },
   header: {
     marginBottom: "2rem",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  headerLeft: {
+    display: "flex",
+    flexDirection: "column" as const,
   },
   greeting: {
     fontFamily: "Barlow",
@@ -31,6 +39,64 @@ const styles = {
     marginTop: "4px",
     display: "block",
   },
+  avatarDropdownContainer: {
+    position: "relative" as const,
+  },
+  headerAvatar: {
+    width: "44px",
+    height: "44px",
+    borderRadius: "50%",
+    background: "#1e1e1e",
+    border: "2px solid #2a2a2a",
+    color: "#c8f135",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: "Barlow Condensed, sans-serif",
+    fontWeight: 800,
+    fontSize: "16px",
+    cursor: "pointer",
+    overflow: "hidden",
+  },
+  headerAvatarImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover" as const,
+  },
+  dropdownMenu: {
+    position: "absolute" as const,
+    top: "50px",
+    right: 0,
+    background: "#161616",
+    border: "1px solid #222",
+    borderRadius: "10px",
+    padding: "6px",
+    minWidth: "160px",
+    zIndex: 10,
+    display: "flex",
+    flexDirection: "column" as const,
+    boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+  },
+  dropdownItem: {
+    padding: "10px 12px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    color: "#e0e0e0",
+    fontSize: "13px",
+    fontFamily: "Barlow, sans-serif",
+    cursor: "pointer",
+    borderRadius: "6px",
+  },
+  dropdownDivider: {
+    height: "1px",
+    background: "#1e1e1e",
+    margin: "4px 0",
+  },
+  modalOverlay: { position: "fixed" as const, top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
+  modalCard: { background: "#161616", border: "1px solid #222", borderRadius: "16px", padding: "24px 20px", maxWidth: "320px", width: "90%", textAlign: "center" as const },
+  modalPrimary: { background: "#E24B4A", color: "#fff", border: "none", borderRadius: "8px", padding: "13px", width: "100%", fontFamily: "Barlow Condensed, sans-serif", fontWeight: 700, fontSize: "15px", textTransform: "uppercase" as const, cursor: "pointer", marginTop: "16px" },
+  modalGhost: { background: "transparent", color: "#555", border: "1px solid #2a2a2a", borderRadius: "8px", padding: "13px", width: "100%", fontFamily: "Barlow Condensed, sans-serif", fontWeight: 700, fontSize: "15px", textTransform: "uppercase" as const, cursor: "pointer", marginTop: "8px" },
   highlightCard: {
     background: "#161616",
     borderRadius: "20px",
@@ -147,10 +213,24 @@ export default function HomePage() {
   const [history, setHistory] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [logoutModal, setLogoutModal] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const getWeekday = () => {
     return new Intl.DateTimeFormat("pt-BR", { weekday: "long" }).format(new Date());
   };
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -222,13 +302,42 @@ export default function HomePage() {
     }
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
+
   if (loading) return <div style={{ background: "#0a0a0a", minHeight: "100vh" }} />;
+
+  const initials = profile?.name ? profile.name.substring(0, 2).toUpperCase() : "AA";
 
   return (
     <div style={styles.container}>
       <header style={styles.header}>
-        <span style={styles.greeting}>Olá, {profile?.name || "atleta"}</span>
-        <span style={styles.weekday}>{getWeekday()}</span>
+        <div style={styles.headerLeft}>
+          <span style={styles.greeting}>Olá, {profile?.name || "atleta"}</span>
+          <span style={styles.weekday}>{getWeekday()}</span>
+        </div>
+        <div style={styles.avatarDropdownContainer} ref={menuRef}>
+          <div style={styles.headerAvatar} onClick={() => setMenuOpen(!menuOpen)}>
+            {profile?.avatar_url ? (
+              <Image src={profile.avatar_url} alt="User" width={44} height={44} style={styles.headerAvatarImage} unoptimized />
+            ) : (
+              initials
+            )}
+          </div>
+          {menuOpen && (
+            <div style={styles.dropdownMenu}>
+              <div style={styles.dropdownItem} onClick={() => router.push("/perfil")}>
+                <User size={16} /> Ver perfil
+              </div>
+              <div style={styles.dropdownDivider} />
+              <div style={{ ...styles.dropdownItem, color: "#E24B4A" }} onClick={() => setLogoutModal(true)}>
+                <LogOut size={16} /> Sair
+              </div>
+            </div>
+          )}
+        </div>
       </header>
 
       {errorMsg && <ErrorMessage message={errorMsg} />}
@@ -285,6 +394,20 @@ export default function HomePage() {
       </div>
 
       <NavBar />
+
+      {logoutModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCard}>
+            <LogOut size={32} color="#E24B4A" style={{ margin: "auto", marginBottom: "12px" }} />
+            <h2 style={{ color: "#f0f0f0", fontFamily: "Barlow Condensed, sans-serif", fontWeight: 800, fontSize: "20px", margin: 0 }}>SAIR DO APP?</h2>
+            <p style={{ color: "#555", fontFamily: "Barlow, sans-serif", fontSize: "13px", margin: "8px 0 20px 0" }}>
+              Você precisará fazer login novamente para acessar seus treinos.
+            </p>
+            <button style={styles.modalPrimary} onClick={handleLogout}>SAIR</button>
+            <button style={styles.modalGhost} onClick={() => setLogoutModal(false)}>CANCELAR</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
