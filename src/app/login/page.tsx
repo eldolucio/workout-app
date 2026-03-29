@@ -68,22 +68,30 @@ function LoginContent() {
 
         <form onSubmit={handleLogin} style={styles.formControls}>
           <div style={styles.fieldGroup}>
-            <label style={styles.label}>E-mail</label>
+            <label htmlFor="email" style={styles.label}>E-mail</label>
             <input
+              id="email"
+              name="email"
               type="email"
+              autoComplete="username"
               style={{ ...styles.input, borderColor: error ? "#E24B4A" : "#2a2a2a" }}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
           <div style={styles.fieldGroup}>
-            <label style={styles.label}>Senha</label>
+            <label htmlFor="password" style={styles.label}>Senha</label>
             <input
+              id="password"
+              name="password"
               type="password"
+              autoComplete="current-password"
               style={{ ...styles.input, borderColor: error ? "#E24B4A" : "#2a2a2a" }}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
             <span style={styles.forgotLink} onClick={() => router.push("/esqueci-senha")}>
               Esqueci minha senha
