@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Inter } from "next/font/google";
+import { InstallBanner } from "@/components/InstallBanner";
 
+const inter = Inter({ subsets: ["latin"] });
 export const viewport = {
   width: "device-width",
   initialScale: 1,
@@ -30,7 +33,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>
+      <body className={inter.className} style={{ margin: 0, padding: 0 }}>
+        <InstallBanner />
         {children}
       </body>
     </html>
