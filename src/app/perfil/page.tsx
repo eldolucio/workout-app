@@ -93,22 +93,34 @@ export default function PerfilPage() {
       `${userAuth.id}/avatar.webp`
     ]);
 
-    const { error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from("avatars")
       .upload(path, file, { upsert: true });
 
     if (uploadError) {
-      setErrorMsg("Erro ao salvar foto.");
+      console.error('[perfil] storage.upload error:', uploadError);
+      setErrorMsg(`Erro no Storage: ${uploadError.message}`);
       setUploadingAvatar(false);
       return;
     }
+
+    console.log('[perfil] upload success:', uploadData);
 
     const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
 
     // Force public bypass cache by appending timestamp
     const cUrl = `${publicUrl}?t=${Date.now()}`;
 
-    await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", userAuth.id);
+    const { error: updateError } = await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", userAuth.id);
+    
+    if (updateError) {
+      console.error('[perfil] profiles.update error:', updateError);
+      setErrorMsg(`Erro no Banco: ${updateError.message}`);
+      setUploadingAvatar(false);
+      return;
+    }
+
+    console.log('[perfil] database update success');
     setProfile((prev: any) => ({ ...prev, avatar_url: cUrl }));
     setUploadingAvatar(false);
   };
