@@ -317,7 +317,45 @@ export default function WorkoutSessionPage() {
   const setsDone = exercises.reduce((acc, curr) => acc + (curr.completedSets || 0), 0);
   const progressPercent = totalPossibleSets > 0 ? (setsDone / totalPossibleSets) * 100 : 0;
 
-  if (loading) return null;
+  const handleFinish = async () => {
+    const finishedAt = new Date().toISOString();
+    setLoading(true);
+
+    try {
+      // 1. Atualiza a sessão no banco
+      await supabase.from("workout_sessions")
+        .update({ finished_at: finishedAt })
+        .eq("id", sessionId);
+
+      // 2. Chama a API de gamificação
+      const duration = Math.round(elapsed / 60);
+      const res = await fetch('/api/gamification/workout-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          sessionId, 
+          durationMinutes: duration, 
+          startedAt: session?.started_at 
+        }),
+      });
+
+      const result = await res.json();
+      
+      // Mostra feedback e volta pra home
+      if (result.leveledUp) {
+        alert(`🏆 PARABÉNS! Você subiu para o nível ${result.newLevel}!`);
+      } else {
+        alert(`✅ Treino concluído! +${result.xpEarned} XP ganhos.`);
+      }
+      
+      router.push("/home");
+    } catch (err) {
+      console.error(err);
+      router.push("/home");
+    }
+  };
+
+  if (loading) return <div style={{ background: "#0a0a0a", minHeight: "100vh" }} />;
 
   return (
     <div style={styles.container}>
@@ -407,7 +445,7 @@ export default function WorkoutSessionPage() {
 
       <ExerciseList exercises={exercises} activeIndex={activeIndex} />
 
-      <button style={styles.finishBtn} onClick={() => router.push("/home")}>
+      <button style={styles.finishBtn} onClick={handleFinish}>
         ENCERRAR TREINO
       </button>
     </div>

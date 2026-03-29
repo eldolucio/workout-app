@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import NavBar from "@/components/NavBar";
 import ErrorMessage from "@/components/ErrorMessage";
 import { Profile, TrainingDay, WorkoutSession } from "@/types";
-import { PlayCircle, Clock, Dumbbell, ChevronRight, LogOut, User } from "lucide-react";
-import Image from "next/image";
+import { PlayCircle, Clock, Dumbbell, ChevronRight, LogOut, User, Flame } from "lucide-react";
+import { getLevelProgress, getLevelTitle } from "@/lib/gamification";
 
 const styles = {
   container: {
@@ -211,6 +211,7 @@ export default function HomePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [nextWorkout, setNextWorkout] = useState<TrainingDay | null>(null);
   const [history, setHistory] = useState<WorkoutSession[]>([]);
+  const [userStats, setUserStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
@@ -243,15 +244,17 @@ export default function HomePage() {
         }
 
         // Profile
-        const { data: prof, error: profError } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-        if (profError) {
-          console.error('[supabase] profiles.select:', profError.message);
-        } else {
+        const { data: prof } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        if (prof) {
           if (prof.avatar_url) {
             prof.avatar_url = `${prof.avatar_url}${prof.avatar_url.includes('?') ? '&' : '?'}t=${Date.now()}`;
           }
           setProfile(prof);
         }
+
+        // Fetch User Stats (Gamification)
+        const { data: st } = await supabase.from("user_stats").select("*").eq("user_id", user.id).single();
+        if (st) setUserStats(st);
 
         // Next Workout (Training Day)
         const { data: sheet, error: sheetError } = await supabase.from("training_sheets").select("id").eq("user_id", user.id).eq("is_active", true).single();
@@ -342,6 +345,72 @@ export default function HomePage() {
           )}
         </div>
       </header>
+
+      {/* Gamification Widget */}
+      {userStats && (
+        <div 
+          onClick={() => router.push("/conquistas")}
+          style={{
+            background: "#161616",
+            border: "1px solid #222",
+            borderRadius: "14px",
+            padding: "12px 16px",
+            display: "flex",
+            alignItems: "center",
+            gap: "14px",
+            margin: "0 20px 24px 20px",
+            cursor: "pointer"
+          }}
+        >
+          {(() => {
+            const progress = getLevelProgress(userStats.xp_total || 0);
+            return (
+              <>
+                <div style={{
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "50%",
+                  border: "2px solid #c8f135",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "#0a0a0a"
+                }}>
+                  <span style={{ fontSize: "7px", color: "#555", fontWeight: 800 }}>LVL</span>
+                  <span style={{ fontSize: "18px", color: "#c8f135", fontFamily: "Barlow Condensed, sans-serif", fontWeight: 800, marginTop: "-5px" }}>
+                    {progress.level}
+                  </span>
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                    <span style={{ color: "#f0f0f0", fontFamily: "Barlow Condensed, sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase" }}>
+                      {getLevelTitle(progress.level)}
+                    </span>
+                    <span style={{ color: "#555", fontSize: "11px" }}>
+                      {userStats.xp_total || 0} XP
+                    </span>
+                  </div>
+                  <div style={{ height: "4px", background: "#0a0a0a", borderRadius: "2px", overflow: "hidden" }}>
+                    <div style={{ height: "100%", background: "#c8f135", width: `${progress.percent}%` }} />
+                  </div>
+                </div>
+
+                <div style={{ textAlign: "right", borderLeft: "1px solid #222", paddingLeft: "14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px", justifyContent: "flex-end" }}>
+                    <span style={{ color: "#c8f135", fontFamily: "Barlow Condensed, sans-serif", fontWeight: 800, fontSize: "18px" }}>
+                      {userStats.streak_days || 0}
+                    </span>
+                    <Flame size={16} color="#c8f135" />
+                  </div>
+                  <span style={{ color: "#444", fontSize: "9px", textTransform: "uppercase", fontWeight: 800 }}>Dias</span>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
 
       {errorMsg && <ErrorMessage message={errorMsg} />}
 
