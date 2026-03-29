@@ -23,7 +23,8 @@ function LoginContent() {
     }
     setLoading(true);
     setError(null);
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+    const cleanEmail = email.trim().toLowerCase();
+    const { error: err } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
     if (err) {
       setError(
         err.message === "Invalid login credentials"

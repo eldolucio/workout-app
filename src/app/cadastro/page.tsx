@@ -39,8 +39,9 @@ export default function CadastroPage() {
     setErrors({});
     setLoading(true);
 
+    const cleanEmail = email.trim().toLowerCase();
     const { error } = await supabase.auth.signUp({
-      email,
+      email: cleanEmail,
       password,
       options: {
         data: { full_name: name.trim() },
@@ -74,34 +75,46 @@ export default function CadastroPage() {
 
         <form onSubmit={handleSignUp} style={styles.formControls}>
           <div style={styles.fieldGroup}>
-            <label style={styles.label}>Nome Completo</label>
+            <label htmlFor="name" style={styles.label}>Nome Completo</label>
             <input
+              id="name"
+              name="name"
               type="text"
+              autoComplete="name"
               style={{ ...styles.input, borderColor: errors.name ? "#E24B4A" : "#2a2a2a" }}
               value={name}
               onChange={(e) => setName(e.target.value)}
+              required
             />
             {errors.name && <span style={styles.errorText}>{errors.name}</span>}
           </div>
 
           <div style={styles.fieldGroup}>
-            <label style={styles.label}>E-mail</label>
+            <label htmlFor="email" style={styles.label}>E-mail</label>
             <input
+              id="email"
+              name="email"
               type="email"
+              autoComplete="email"
               style={{ ...styles.input, borderColor: errors.email ? "#E24B4A" : "#2a2a2a" }}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
             {errors.email && <span style={styles.errorText}>{errors.email}</span>}
           </div>
 
           <div style={styles.fieldGroup}>
-            <label style={styles.label}>Senha</label>
+            <label htmlFor="password" style={styles.label}>Senha</label>
             <input
+              id="password"
+              name="password"
               type="password"
+              autoComplete="new-password"
               style={{ ...styles.input, borderColor: errors.password ? "#E24B4A" : "#2a2a2a" }}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
             <div style={styles.strengthTracker}>
               <div style={{ width: "100%", height: "3px", background: "#1e1e1e", borderRadius: "3px" }}>
@@ -113,12 +126,16 @@ export default function CadastroPage() {
           </div>
 
           <div style={styles.fieldGroup}>
-            <label style={styles.label}>Confirmar senha</label>
+            <label htmlFor="confirm" style={styles.label}>Confirmar senha</label>
             <input
+              id="confirm"
+              name="confirm"
               type="password"
+              autoComplete="new-password"
               style={{ ...styles.input, borderColor: errors.confirm ? "#E24B4A" : "#2a2a2a" }}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
+              required
             />
             {errors.confirm && <span style={styles.errorText}>{errors.confirm}</span>}
           </div>
