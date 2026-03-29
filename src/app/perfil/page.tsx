@@ -34,7 +34,12 @@ export default function PerfilPage() {
         setUserAuth(user);
 
         const { data: prof } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-        if (prof) setProfile(prof);
+        if (prof) {
+          if (prof.avatar_url) {
+            prof.avatar_url = `${prof.avatar_url}${prof.avatar_url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+          }
+          setProfile(prof);
+        }
 
         // Fetch stats
         const { count: sessionCount } = await supabase.from("workout_sessions").select("id", { count: "exact" }).eq("user_id", user.id);

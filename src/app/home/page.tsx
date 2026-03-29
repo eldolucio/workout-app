@@ -247,6 +247,9 @@ export default function HomePage() {
         if (profError) {
           console.error('[supabase] profiles.select:', profError.message);
         } else {
+          if (prof.avatar_url) {
+            prof.avatar_url = `${prof.avatar_url}${prof.avatar_url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+          }
           setProfile(prof);
         }
 
