@@ -1,25 +1,17 @@
+export const dynamic = 'force-dynamic'
 import { createClient } from "@supabase/supabase-js";
 import { OpenAI } from "openai";
 import { NextResponse } from "next/server";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-import { createClient as createServerClient } from "@/lib/supabase-server";
-
 export async function POST(req: Request) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
   try {
-    const supabaseServer = await createServerClient();
-    const { data: { session } } = await supabaseServer.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-    }
-
     const { bucketPath, userId, name } = await req.json();
 
     // 1. Gerar URL assinada (válida por 1 hora)
@@ -58,7 +50,6 @@ export async function POST(req: Request) {
     const workoutData = JSON.parse(resultText);
 
     // 3. Save to Supabase
-    // Create training_sheet
     const { data: sheet, error: sheetError } = await supabase
       .from("training_sheets")
       .insert({
@@ -88,7 +79,7 @@ export async function POST(req: Request) {
           name: ex.name,
           sets: parseInt(ex.sets) || 3,
           reps: ex.reps.toString(),
-          rest_seconds: ex.rest_seconds.toString(),
+          rest_seconds: (ex.rest_seconds || "60").toString(),
           order_index: idx
         }));
 

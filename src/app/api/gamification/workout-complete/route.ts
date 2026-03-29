@@ -1,15 +1,16 @@
+export const dynamic = 'force-dynamic'
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { levelFromXp, XP_REWARDS, calculateStreak } from '@/lib/gamification'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export async function POST(request: Request) {
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -113,13 +114,10 @@ export async function POST(request: Request) {
     // 6. Enviar Notificação Push pelo Servidor
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     
-    // Dispara em background para não travar a resposta da API
-    // (Não usamos await se o runtime permitir, mas no Node/Vercel é melhor avisar que enviou)
-    
-    // Notificação do treino
+    // Dispara em background
     fetch(`${baseUrl}/api/push/send`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }, // No Vercel precisamos passar as cookies se for mesma origem ou usar Admin Key
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId,
         title: leveledUp ? `⬆️ SUBIU DE NÍVEL: ${newLevelCalculated}!` : '✅ Treino concluído!',

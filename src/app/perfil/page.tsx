@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import NavBar from "@/components/NavBar";
-import heic2any from "heic2any";
+// import heic2any from "heic2any"; // Removido import estático que quebra o build SSR
 import { Camera, Lock, ClipboardList, History, LogOut, ArrowLeft, Bell, User, Trophy } from "lucide-react";
 
 export default function PerfilPage() {
@@ -81,7 +81,8 @@ export default function PerfilPage() {
 
     if (file.name.toLowerCase().endsWith(".heic") || file.type === "image/heic") {
       try {
-        const convertedBlob = await heic2any({ 
+        const heic2any = (await import("heic2any")).default;
+        const convertedBlob = await (heic2any as any)({ 
           blob: file, 
           toType: "image/jpeg",
           quality: 0.8 
