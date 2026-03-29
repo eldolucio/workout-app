@@ -51,9 +51,9 @@ export function usePushNotifications() {
       }, { onConflict: 'endpoint' })
 
       setSubscribed(true)
-    } catch (err) {
+    } catch (err: any) {
       console.error('[Push] erro no enable:', err)
-      alert('Não foi possível ativar as notificações.');
+      alert(`Não foi possível ativar as notificações: ${err.message || 'Erro desconhecido'}`);
     } finally {
       setLoading(false)
     }
