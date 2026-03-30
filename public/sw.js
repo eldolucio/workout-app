@@ -19,6 +19,12 @@ self.addEventListener('activate', (event) => {
   self.clients.claim()
 })
 
+// Requisito para PWA: interceptador de fetch
+self.addEventListener('fetch', (event) => {
+  // Apenas deixa os requests passarem normalmente
+  return
+})
+
 // Exibe notificação push recebida
 self.addEventListener('push', (event) => {
   if (!event.data) return
