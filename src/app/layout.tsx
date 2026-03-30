@@ -41,6 +41,21 @@ export default function RootLayout({
       <body className={inter.className} style={{ margin: 0, padding: 0 }}>
         <InstallBanner />
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('SW registrado com sucesso!');
+                  }, function(err) {
+                    console.log('Falha no registro do SW: ', err);
+                  });
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
