@@ -23,7 +23,16 @@ export default function HistoricoPage() {
 
         const { data, error } = await supabase
           .from("workout_sessions")
-          .select("*, training_days(label, focus)")
+          .select(`
+            id,
+            started_at,
+            finished_at,
+            notes,
+            training_days (
+              label,
+              focus
+            )
+          `)
           .eq("user_id", user.id)
           .order("started_at", { ascending: false });
 
@@ -49,7 +58,7 @@ export default function HistoricoPage() {
       </header>
 
       <div style={styles.list}>
-        {history.length > 0 ? history.map((session) => (
+        {history.length > 0 ? history.map((session: any) => (
           <div key={session.id} style={styles.card}>
             <div style={styles.cardHeader}>
               <div style={styles.iconBox}>
@@ -57,7 +66,7 @@ export default function HistoricoPage() {
               </div>
               <div style={styles.info}>
                 <span style={styles.workoutName}>
-                  {session.training_days?.label || "Treino Avulso"}
+                  {session.training_days?.label || "Treino"}
                 </span>
                 <span style={styles.workoutFocus}>
                   {session.training_days?.focus || "Geral"}
