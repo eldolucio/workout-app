@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const mimeType = fileData.type || "image/jpeg";
 
     // 3. Chamar o Gemini 1.5 Flash com visão
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const prompt = `Você é um especialista em leitura de fichas de treino de academia.
 Analise esta imagem e extraia TODOS os exercícios presentes.
