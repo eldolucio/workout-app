@@ -16,8 +16,13 @@ export const metadata: Metadata = {
   description: 'App de treinos personalizados com importação de fichas por OCR',
   manifest: '/manifest.json',
   icons: {
-    icon: '/icon.png',
+    icon: '/icon-192.png',
     apple: '/apple-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'WorkoutApp',
   },
   openGraph: {
     title: 'WorkoutApp',
