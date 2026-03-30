@@ -8,6 +8,12 @@ const PUBLIC_PATHS = [
   '/esqueci-senha',
   '/nova-senha',
   '/auth/callback',
+  '/manifest.webmanifest',
+  '/manifest.json',
+  '/sw.js',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-icon.png',
 ]
 
 export async function proxy(request: NextRequest) {
