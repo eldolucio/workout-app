@@ -1,55 +1,76 @@
 export const dynamic = 'force-dynamic'
 import { createClient } from "@supabase/supabase-js";
-import { OpenAI } from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
   try {
     const { bucketPath, userId, name } = await req.json();
 
-    // 1. Gerar URL assinada (válida por 1 hora)
-    const { data, error: signedError } = await supabase.storage
+    // 1. Baixar a imagem do Supabase Storage como buffer
+    const { data: fileData, error: downloadError } = await supabase.storage
       .from("workout-sheets")
-      .createSignedUrl(bucketPath, 3600);
+      .download(bucketPath);
 
-    if (signedError || !data) throw signedError || new Error("Falha ao gerar URL assinada");
+    if (downloadError || !fileData) {
+      throw downloadError || new Error("Falha ao baixar imagem do storage");
+    }
 
-    const signedUrl = data.signedUrl;
+    // 2. Converter para base64 para enviar ao Gemini
+    const arrayBuffer = await fileData.arrayBuffer();
+    const base64Image = Buffer.from(arrayBuffer).toString("base64");
+    const mimeType = fileData.type || "image/jpeg";
 
-    // 2. Call GPT-4o Vision
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
+    // 3. Chamar o Gemini 1.5 Flash com visão
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `Você é um especialista em leitura de fichas de treino de academia.
+Analise esta imagem e extraia TODOS os exercícios presentes.
+Agrupe por dia/treino (ex: "TREINO A", "TREINO B") se houver divisão.
+Se não houver divisão, use "TREINO COMPLETO" como label.
+
+Retorne APENAS um JSON válido com esta estrutura exata (sem markdown, sem explicações):
+{
+  "days": [
+    {
+      "label": "TREINO A",
+      "exercises": [
         {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Extraia desta ficha de treino: nome de cada exercício, séries, repetições e tempo de descanso.
-              Retorne APENAS um JSON com a estrutura EXATA:
-              { "days": [{ "label": "TREINO A", "exercises": [{ "name": "Supino Reto", "sets": 4, "reps": "12", "rest_seconds": "60" }] }] }`
-            },
-            {
-              type: "image_url",
-              image_url: { url: signedUrl }
-            }
-          ]
+          "name": "Nome do exercício",
+          "sets": 3,
+          "reps": "12",
+          "rest_seconds": "60"
         }
-      ],
-      response_format: { type: "json_object" }
-    });
+      ]
+    }
+  ]
+}`;
 
-    const resultText = response.choices[0].message.content!;
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: mimeType,
+          data: base64Image,
+        },
+      },
+    ]);
+
+    const resultText = result.response.text()
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
     const workoutData = JSON.parse(resultText);
 
-    // 3. Save to Supabase
+    // 4. Salvar no Supabase
     const { data: sheet, error: sheetError } = await supabase
       .from("training_sheets")
       .insert({
@@ -69,6 +90,7 @@ export async function POST(req: Request) {
         .insert({
           sheet_id: sheet.id,
           label: day.label,
+          focus: day.label,
         })
         .select()
         .single();
@@ -78,9 +100,9 @@ export async function POST(req: Request) {
           day_id: dayRow.id,
           name: ex.name,
           sets: parseInt(ex.sets) || 3,
-          reps: ex.reps.toString(),
+          reps: ex.reps?.toString() || "12",
           rest_seconds: (ex.rest_seconds || "60").toString(),
-          order_index: idx
+          order_index: idx,
         }));
 
         await supabase.from("exercises").insert(exercisesToInsert);
