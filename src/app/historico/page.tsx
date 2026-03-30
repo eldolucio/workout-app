@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import NavBar from "@/components/NavBar";
-import { WorkoutSession } from "@/types";
-import { History, Calendar, Clock, ChevronRight, Dumbbell } from "lucide-react";
+import { History, Clock, ChevronRight, Dumbbell } from "lucide-react";
 
 export default function HistoricoPage() {
   const router = useRouter();
-  const [history, setHistory] = useState<any[]>([]);
+  const [historyList, setHistoryList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,23 +22,14 @@ export default function HistoricoPage() {
 
         const { data, error } = await supabase
           .from("workout_sessions")
-          .select(`
-            id,
-            started_at,
-            finished_at,
-            notes,
-            training_days (
-              label,
-              focus
-            )
-          `)
+          .select("id, started_at, finished_at, notes, training_days(label, focus)")
           .eq("user_id", user.id)
           .order("started_at", { ascending: false });
 
         if (error) throw error;
-        setHistory(data || []);
+        setHistoryList(data || []);
       } catch (err) {
-        console.error("Erro ao carregar histórico:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -54,11 +44,11 @@ export default function HistoricoPage() {
       <header style={styles.header}>
         <History size={28} color="#c8f135" />
         <h1 style={styles.title}>Meu Histórico</h1>
-        <p style={styles.subtitle}>{history.length} treinos concluídos</p>
+        <p style={styles.subtitle}>{historyList.length} treinos concluídos</p>
       </header>
 
       <div style={styles.list}>
-        {history.length > 0 ? history.map((session: any) => (
+        {historyList.length > 0 ? historyList.map((session: any) => (
           <div key={session.id} style={styles.card}>
             <div style={styles.cardHeader}>
               <div style={styles.iconBox}>
@@ -81,14 +71,14 @@ export default function HistoricoPage() {
 
             <div style={styles.footer}>
               <div style={styles.meta}>
-                <Calendar size={12} />
+                <Clock size={12} />
                 <span>{new Date(session.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
               {session.finished_at && (
                 <div style={styles.meta}>
                   <Clock size={12} />
                   <span>
-                    {Math.floor((new Date(session.finished_at).getTime() - new Date(session.started_at).getTime()) / 60000)} min
+                    Fim: {new Date(session.finished_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               )}
@@ -109,113 +99,20 @@ export default function HistoricoPage() {
 }
 
 const styles = {
-  container: {
-    minHeight: "100vh",
-    background: "#0a0a0a",
-    padding: "2rem 1.5rem 100px 1.5rem",
-  },
-  header: {
-    marginBottom: "2.5rem",
-    textAlign: "center" as const,
-  },
-  title: {
-    fontFamily: "Barlow Condensed",
-    fontSize: "2.5rem",
-    fontWeight: 800,
-    color: "#f0f0f0",
-    textTransform: "uppercase" as const,
-    margin: "12px 0 4px 0",
-    letterSpacing: "-0.02em",
-  },
-  subtitle: {
-    fontFamily: "Barlow",
-    fontSize: "0.875rem",
-    color: "#555",
-    textTransform: "uppercase" as const,
-    fontWeight: 600,
-    letterSpacing: "0.05em",
-  },
-  list: {
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "1rem",
-  },
-  card: {
-    background: "#161616",
-    borderRadius: "20px",
-    border: "1px solid #222",
-    padding: "1rem",
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "12px",
-  },
-  cardHeader: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-  },
-  iconBox: {
-    width: "40px",
-    height: "40px",
-    borderRadius: "12px",
-    background: "#0a0a0a",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    border: "1px solid #222",
-  },
-  info: {
-    display: "flex",
-    flexDirection: "column" as const,
-    flex: 1,
-  },
-  workoutName: {
-    fontFamily: "Barlow Condensed",
-    color: "#f0f0f0",
-    fontWeight: 800,
-    fontSize: "1rem",
-    textTransform: "uppercase" as const,
-  },
-  workoutFocus: {
-    fontFamily: "Barlow",
-    color: "#555",
-    fontSize: "0.75rem",
-  },
-  dateBadge: {
-    fontSize: "10px",
-    color: "#c8f135",
-    background: "rgba(200, 241, 53, 0.1)",
-    padding: "4px 8px",
-    borderRadius: "6px",
-    fontFamily: "Barlow Condensed",
-    fontWeight: 700,
-  },
-  divider: {
-    height: "1px",
-    background: "#222",
-    width: "100%",
-  },
-  footer: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    color: "#444",
-  },
-  meta: {
-    display: "flex",
-    alignItems: "center",
-    gap: "4px",
-    fontSize: "0.75rem",
-    fontFamily: "Barlow",
-  },
-  empty: {
-    textAlign: "center" as const,
-    padding: "4rem 2rem",
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    gap: "16px",
-    color: "#333",
-    fontFamily: "Barlow",
-  }
+  container: { minHeight: "100vh", background: "#0a0a0a", padding: "2rem 1.5rem 100px 1.5rem" },
+  header: { marginBottom: "2.5rem", textAlign: "center" as const },
+  title: { fontFamily: "Barlow Condensed", fontSize: "2.5rem", fontWeight: 800, color: "#f0f0f0", textTransform: "uppercase" as const, margin: "12px 0 4px 0" },
+  subtitle: { fontFamily: "Barlow", fontSize: "0.875rem", color: "#555", textTransform: "uppercase" as const, fontWeight: 600 },
+  list: { display: "flex", flexDirection: "column" as const, gap: "1rem" },
+  card: { background: "#161616", borderRadius: "20px", border: "1px solid #222", padding: "1rem", display: "flex", flexDirection: "column" as const, gap: "12px" },
+  cardHeader: { display: "flex", alignItems: "center", gap: "12px" },
+  iconBox: { width: "40px", height: "40px", borderRadius: "12px", background: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #222" },
+  info: { display: "flex", flexDirection: "column" as const, flex: 1 },
+  workoutName: { fontFamily: "Barlow Condensed", color: "#f0f0f0", fontWeight: 800, fontSize: "1rem", textTransform: "uppercase" as const },
+  workoutFocus: { fontFamily: "Barlow", color: "#555", fontSize: "0.75rem" },
+  dateBadge: { fontSize: "10px", color: "#c8f135", background: "rgba(200, 241, 53, 0.1)", padding: "4px 8px", borderRadius: "6px", fontFamily: "Barlow Condensed", fontWeight: 700 },
+  divider: { height: "1px", background: "#222", width: "100%" },
+  footer: { display: "flex", alignItems: "center", gap: "12px", color: "#444" },
+  meta: { display: "flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontFamily: "Barlow" },
+  empty: { textAlign: "center" as const, padding: "4rem 2rem", display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "16px", color: "#333" }
 };
