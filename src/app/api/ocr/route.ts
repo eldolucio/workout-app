@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { createClient } from "@supabase/supabase-js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
   try {
     const { bucketPath, userId, name } = await req.json();
@@ -23,14 +23,12 @@ export async function POST(req: Request) {
       throw downloadError || new Error("Falha ao baixar imagem do storage");
     }
 
-    // 2. Converter para base64 para enviar ao Gemini
+    // 2. Converter para base64
     const arrayBuffer = await fileData.arrayBuffer();
     const base64Image = Buffer.from(arrayBuffer).toString("base64");
-    const mimeType = fileData.type || "image/jpeg";
+    const mimeType = (fileData.type || "image/jpeg") as "image/jpeg" | "image/png" | "image/webp";
 
     // 3. Chamar o Gemini 1.5 Flash com visão
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-
     const prompt = `Você é um especialista em leitura de fichas de treino de academia.
 Analise esta imagem e extraia TODOS os exercícios presentes.
 Agrupe por dia/treino (ex: "TREINO A", "TREINO B") se houver divisão.
@@ -53,17 +51,25 @@ Retorne APENAS um JSON válido com esta estrutura exata (sem markdown, sem expli
   ]
 }`;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: mimeType,
-          data: base64Image,
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: mimeType,
+                data: base64Image,
+              },
+            },
+          ],
         },
-      },
-    ]);
+      ],
+    });
 
-    const resultText = result.response.text()
+    const resultText = (response.text ?? "")
       .replace(/```json/g, "")
       .replace(/```/g, "")
       .trim();
