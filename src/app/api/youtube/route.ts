@@ -1,5 +1,4 @@
 export const dynamic = 'force-dynamic'
-import ytSearch from "yt-search";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -11,11 +10,20 @@ export async function GET(req: Request) {
   }
 
   try {
-    const r = await ytSearch(q + " exercicio musculacao como fazer correto");
-    const video = r.videos.find(v => v.seconds < 600); // Tentar pegar um video curto (menos de 10 min)
+    const fetchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(q + " exercicio musculacao execução correta")}`;
+    const res = await fetch(fetchUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+      }
+    });
     
-    if (video || r.videos[0]) {
-       return NextResponse.json({ videoId: video?.videoId || r.videos[0].videoId });
+    const html = await res.text();
+    // Extrai o primeiro videoId encontrado no HTML serializado do YouTube
+    const match = html.match(/"videoId":"([^"]{11})"/);
+    
+    if (match && match[1]) {
+       return NextResponse.json({ videoId: match[1] });
     } else {
        return NextResponse.json({ error: "Vídeo não encontrado" }, { status: 404 });
     }
