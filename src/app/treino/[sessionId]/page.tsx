@@ -7,7 +7,7 @@ import SetControls from "@/components/SetControls";
 import ExerciseList from "@/components/ExerciseList";
 import ErrorMessage from "@/components/ErrorMessage";
 import { WorkoutSession, Exercise, SessionSet, TrainingDay } from "@/types";
-import { Check, Timer } from "lucide-react";
+import { Check, Timer, Info } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const ExerciseAnimation = dynamic(
@@ -384,8 +384,9 @@ export default function WorkoutSessionPage() {
         <div style={styles.activeCard}>
           <div style={styles.exerciseHeader}>
             <div>
-              <h2 style={styles.exerciseName} onClick={() => setShowAnimation(true)}>
+              <h2 style={{...styles.exerciseName, display: "flex", alignItems: "center", gap: "8px"}} onClick={() => setShowAnimation(true)}>
                 {currentExercise.name}
+                <Info size={20} color="#555" />
               </h2>
               <span style={styles.muscleGroup}>{currentExercise.muscle_group}</span>
             </div>
