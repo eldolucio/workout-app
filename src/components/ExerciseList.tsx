@@ -8,6 +8,7 @@ type Exercise = DBExercise & { completedSets?: number };
 interface Props {
   exercises: Exercise[];
   activeIndex: number;
+  onSelect?: (index: number) => void;
 }
 
 const styles = {
@@ -26,6 +27,7 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     transition: "all 0.3s ease",
+    cursor: "pointer",
   },
   info: {
     display: "flex",
@@ -57,7 +59,7 @@ const styles = {
   },
 };
 
-export default function ExerciseList({ exercises, activeIndex }: Props) {
+export default function ExerciseList({ exercises, activeIndex, onSelect }: Props) {
   return (
     <div style={styles.container}>
       {exercises.map((ex, idx) => {
@@ -66,7 +68,11 @@ export default function ExerciseList({ exercises, activeIndex }: Props) {
         const color = isActive ? "#c8f135" : "#222";
 
         return (
-          <div key={ex.id} style={{ ...styles.card, borderColor: color, opacity: isDone ? 0.5 : 1 }}>
+          <div 
+            key={ex.id} 
+            style={{ ...styles.card, borderColor: color, opacity: isDone ? 0.5 : 1 }}
+            onClick={() => onSelect && onSelect(idx)}
+          >
             <div style={styles.info}>
               <span style={styles.name}>{ex.name}</span>
               <span style={styles.meta}>

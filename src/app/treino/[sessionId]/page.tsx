@@ -313,8 +313,10 @@ export default function WorkoutSessionPage() {
 
   const handleTimerFinish = () => {
     setShowTimer(false);
-    if (completedSetsInActive.length >= currentExercise.sets && activeIndex < exercises.length - 1) {
-      setActiveIndex(activeIndex + 1);
+    // Verificar pelas contagens atualizadas que já foram persistidas no DB/state
+    const setsDone = exercises[activeIndex]?.completedSets || 0;
+    if (setsDone >= currentExercise.sets && activeIndex < exercises.length - 1) {
+      setActiveIndex(prev => prev + 1);
     }
   };
 
@@ -449,7 +451,7 @@ export default function WorkoutSessionPage() {
         />
       )}
 
-      <ExerciseList exercises={exercises} activeIndex={activeIndex} />
+      <ExerciseList exercises={exercises} activeIndex={activeIndex} onSelect={setActiveIndex} />
 
       <button style={styles.finishBtn} onClick={handleFinish}>
         ENCERRAR TREINO
