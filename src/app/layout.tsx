@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { InstallBanner } from "@/components/InstallBanner";
+import { ChangelogModal } from "@/components/ChangelogModal";
 
 const inter = Inter({ subsets: ["latin"] });
 export const viewport = {
@@ -40,6 +41,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={inter.className} style={{ margin: 0, padding: 0 }}>
         <InstallBanner />
+        <ChangelogModal />
         {children}
         <script
           dangerouslySetInnerHTML={{
