@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import NavBar from "@/components/NavBar";
 import ErrorMessage from "@/components/ErrorMessage";
 import { Profile, TrainingDay, WorkoutSession } from "@/types";
-import { PlayCircle, Clock, Dumbbell, ChevronRight, LogOut, User, Flame } from "lucide-react";
+import { PlayCircle, Clock, Dumbbell, ChevronRight, LogOut, User, Flame, Heart } from "lucide-react";
 import { getLevelProgress, getLevelTitle } from "@/lib/gamification";
 
 const styles = {
@@ -233,6 +233,8 @@ export default function HomePage() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  const [cardioStats, setCardioStats] = useState({ duration: 0, distance: 0, count: 0, next: null as any });
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -256,23 +258,32 @@ export default function HomePage() {
         const { data: st } = await supabase.from("user_stats").select("*").eq("user_id", user.id).single();
         if (st) setUserStats(st);
 
-        // Next Workout (Training Day)
-        const { data: sheet, error: sheetError } = await supabase.from("training_sheets").select("id").eq("user_id", user.id).eq("is_active", true).single();
-        if (sheetError) console.error('[supabase] training_sheets.select:', sheetError.message);
+        // Next Workout (Training Day) + Cardio Prescrito
+        const { data: sheet } = await supabase.from("training_sheets").select("id").eq("user_id", user.id).eq("is_active", true).single();
         
         if (sheet) {
-          const { data: days, error: daysError } = await supabase.from("training_days").select("*, exercises(count)").eq("sheet_id", sheet.id).order("order_index", { ascending: true }).limit(1);
-          if (daysError) console.error('[supabase] training_days.select:', daysError.message);
+          const { data: days } = await supabase.from("training_days").select("*, exercises(count)").eq("sheet_id", sheet.id).order("order_index", { ascending: true }).limit(1);
           if (days && days[0]) setNextWorkout(days[0]);
+          
+          const { data: nextCardio } = await supabase.from('cardio_sessions_prescribed').select('*').eq('sheet_id', sheet.id).limit(1).single();
+          if (nextCardio) setCardioStats(prev => ({...prev, next: nextCardio}));
         }
 
         // History
-        const { data: hist, error: histError } = await supabase.from("workout_sessions").select("*, training_days(label)").eq("user_id", user.id).order("started_at", { ascending: false }).limit(3);
-        if (histError) {
-          console.error('[supabase] workout_sessions.select:', histError.message);
-        } else {
-          setHistory(hist || []);
+        const { data: hist } = await supabase.from("workout_sessions").select("*, training_days(label)").eq("user_id", user.id).order("started_at", { ascending: false }).limit(3);
+        if (hist) setHistory(hist);
+        
+        // Cardio da semana
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        
+        const { data: cw } = await supabase.from('cardio_sessions_done').select('duration_sec, distance_km').eq('user_id', user.id).gte('started_at', weekAgo.toISOString());
+        if (cw) {
+          let dur = 0, dist = 0;
+          cw.forEach(c => { dur += c.duration_sec || 0; dist += c.distance_km || 0; });
+          setCardioStats(prev => ({...prev, duration: dur, distance: dist, count: cw.length}));
         }
+
       } catch (e) {
          setErrorMsg(e instanceof Error ? e.message : 'Erro desconhecido');
       } finally {
@@ -436,6 +447,47 @@ export default function HomePage() {
            <button style={styles.startBtn} onClick={() => router.push('/fichas/importar')}>
              Importar Ficha
            </button>
+        </div>
+      )}
+
+      {/* Seção Cardio */}
+      <div style={styles.sectionTitle}>CARDIO DA SEMANA</div>
+      <div style={{ background: "#161616", borderRadius: "14px", border: "1px solid #222", padding: "16px", marginBottom: "2rem", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", textAlign: "center" }} onClick={() => router.push('/cardio/historico')}>
+         <div>
+            <div style={{ fontFamily: "Barlow Condensed", fontSize: "1.25rem", color: "#f0f0f0", fontWeight: 800 }}>
+              {Math.floor(cardioStats.duration / 3600)}h {Math.floor((cardioStats.duration % 3600) / 60)}m
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "#555", textTransform: "uppercase" }}>Tempo Total</div>
+         </div>
+         <div style={{ borderLeft: "1px solid #222", borderRight: "1px solid #222" }}>
+            <div style={{ fontFamily: "Barlow Condensed", fontSize: "1.25rem", color: "#c8f135", fontWeight: 800 }}>
+              {cardioStats.distance.toFixed(1)} km
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "#555", textTransform: "uppercase" }}>Distância</div>
+         </div>
+         <div>
+            <div style={{ fontFamily: "Barlow Condensed", fontSize: "1.25rem", color: "#f0f0f0", fontWeight: 800 }}>
+              {cardioStats.count}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "#555", textTransform: "uppercase" }}>Sessões</div>
+         </div>
+      </div>
+
+      {cardioStats.next && (
+        <div style={{ ...styles.highlightCard, borderTop: "4px solid #E24B4A" }}>
+          <div style={{...styles.cardAccent, background: "linear-gradient(90deg, transparent 0%, rgba(226, 75, 74, 0.05) 100%)" }} />
+          <h2 style={styles.cardTitle}>CARDIO PRESCRITO</h2>
+          <div style={styles.cardMeta}>
+            <div style={styles.metaItem}>
+              <Heart size={14} color="#E24B4A"/> <span style={{ textTransform: 'capitalize' }}>{cardioStats.next.cardio_type}</span>
+            </div>
+            <div style={styles.metaItem}>
+              <Clock size={14} /> <span>{cardioStats.next.duration_min} min</span>
+            </div>
+          </div>
+          <button style={{ ...styles.startBtn, background: "#E24B4A", color: "#fff" }} onClick={() => router.push(`/cardio/${cardioStats.next.cardio_type}?prescribed=${cardioStats.next.id}`)}>
+            <PlayCircle size={20} /> INICIAR CARDIO
+          </button>
         </div>
       )}
 

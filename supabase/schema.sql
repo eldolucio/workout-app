@@ -1,13 +1,15 @@
 -- Extensão para UUIDs
 create extension if not exists "pgcrypto";
 
--- Perfil do usuário (espelha auth.users)
 create table public.profiles (
   id          uuid references auth.users on delete cascade primary key,
   name        text,
   avatar_url  text,
   weight_kg   int,
   height_cm   int,
+  birth_year  int,
+  xp          int default 0,
+  level       int default 1,
   created_at  timestamptz default now()
 );
 
@@ -119,3 +121,42 @@ create policy "user vê próprias séries"
   using (session_id in (
     select id from public.workout_sessions where user_id = auth.uid()
   ));
+
+-- Tabela de assinaturas push
+create table public.push_subscriptions (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references public.profiles on delete cascade not null,
+  endpoint    text not null,
+  p256dh      text not null,
+  auth_key    text not null,
+  device_name text,
+  created_at  timestamptz default now(),
+  unique(endpoint)
+);
+
+alter table public.push_subscriptions enable row level security;
+create policy "user gerencia push" on public.push_subscriptions for all using (auth.uid() = user_id);
+
+-- Tabela de conquistas do sistema
+create table public.achievements (
+  id          uuid primary key default gen_random_uuid(),
+  slug        text unique not null,
+  name        text not null,
+  description text not null,
+  icon        text,
+  xp_reward   int default 0,
+  condition   text,
+  created_at  timestamptz default now()
+);
+
+-- Conquistas desbloqueadas pelo usuário
+create table public.user_achievements (
+  id             uuid primary key default gen_random_uuid(),
+  user_id        uuid references public.profiles on delete cascade not null,
+  achievement_id uuid references public.achievements on delete cascade not null,
+  unlocked_at    timestamptz default now(),
+  unique(user_id, achievement_id)
+);
+
+alter table public.user_achievements enable row level security;
+create policy "user vê conquistas" on public.user_achievements for select using (auth.uid() = user_id);

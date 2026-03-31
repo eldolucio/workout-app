@@ -53,6 +53,13 @@ export const XP_REWARDS = {
   IMPORT_OCR:         30,   // importar ficha
   LOGIN_STREAK:       15,   // manter sequência diária
   PERFECT_WEEK:      120,   // 5+ treinos em 7 dias
+  CARDIO_BASE:        25,   // qualquer sessão de cardio concluída
+  CARDIO_30MIN:       15,   // bônus por 30+ minutos
+  CARDIO_60MIN:       30,   // bônus por 60+ minutos
+  HIIT_COMPLETE:      35,   // HIIT concluído
+  HEART_ZONE_4:       20,   // treinou na zona 4
+  HEART_ZONE_5:       30,   // treinou na zona 5
+  CARDIO_STREAK:      10,   // cardio em dias consecutivos
 }
 
 // Calcula sequência de dias consecutivos (streak)
