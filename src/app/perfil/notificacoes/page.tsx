@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { ArrowLeft, BellOff, Smartphone, ShieldCheck, Trash2, Clock } from 'lucide-react'
+import { ArrowLeft, BellOff, Smartphone, ShieldCheck, Trash2, Clock, Check } from 'lucide-react'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 
 export default function NotificacoesConfigPage() {
@@ -11,6 +11,7 @@ export default function NotificacoesConfigPage() {
   const [subscriptions, setSubscriptions] = useState<any[]>([])
   const [reminderTime, setReminderTime] = useState("")
   const [saving, setSaving] = useState(false)
+  const [showToast, setShowToast] = useState(false)
   const [userId, setUserId] = useState("")
 
   useEffect(() => {
@@ -34,7 +35,8 @@ export default function NotificacoesConfigPage() {
     setSaving(true)
     await supabase.from('profiles').update({ reminder_time: reminderTime }).eq('id', userId)
     setSaving(false)
-    alert("Configurações salvas!")
+    setShowToast(true)
+    setTimeout(() => setShowToast(false), 3000)
   }
 
   const removeDevice = async (endpoint: string) => {
@@ -124,6 +126,41 @@ export default function NotificacoesConfigPage() {
           </div>
         </div>
       </div>
+
+      {/* Floating Toast Success */}
+      {showToast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '100px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#c8f135',
+          color: '#0a0a0a',
+          padding: '12px 20px',
+          borderRadius: '30px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          boxShadow: '0 8px 30px rgba(200, 241, 53, 0.3)',
+          zIndex: 2000,
+          fontFamily: 'Barlow',
+          fontWeight: 700,
+          fontSize: '14px',
+          animation: 'fadeInUp 0.3s ease'
+        }}>
+          <div style={{ background: 'rgba(0,0,0,0.1)', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Check size={16} />
+          </div>
+          Configurações salvas com sucesso!
+        </div>
+      )}
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translate(-50%, 20px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+      `}} />
     </div>
   )
 }
@@ -134,14 +171,21 @@ const styles = {
   backBtn: { background: "none", border: "none", color: "#555", display: "flex", alignItems: "center", gap: "4px", fontSize: "14px", cursor: "pointer" },
   pageTitle: { color: "#f0f0f0", fontFamily: "Barlow Condensed, sans-serif", fontWeight: 800, fontSize: "16px" },
   content: { padding: "0 20px" },
-  statusCard: { background: "#161616", border: "1px solid #222", borderRadius: "20px", padding: "24px", marginBottom: "30px" },
+  statusCard: { 
+    background: "linear-gradient(145deg, #1a1a1a 0%, #161616 100%)", 
+    border: "1px solid #222", 
+    borderRadius: "24px", 
+    padding: "24px", 
+    marginBottom: "24px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
+  },
   statusHeader: { display: "flex", flexDirection: "column" as const, gap: "12px", marginBottom: "16px" },
-  statusBadgeActive: { display: "inline-flex", alignItems: "center", gap: "6px", background: "#1a2a00", color: "#c8f135", fontSize: "11px", fontWeight: 800, padding: "4px 10px", borderRadius: "20px", alignSelf: "flex-start" },
-  statusBadgeInactive: { display: "inline-flex", alignItems: "center", gap: "6px", background: "#2a0000", color: "#E24B4A", fontSize: "11px", fontWeight: 800, padding: "4px 10px", borderRadius: "20px", alignSelf: "flex-start" },
-  sectionTitle: { color: "#f0f0f0", fontFamily: "Barlow Condensed, sans-serif", fontSize: "20px", fontWeight: 800, margin: 0 },
-  statusDesc: { color: "#888", fontSize: "13px", lineHeight: "1.5", marginBottom: "20px" },
-  btnEnable: { width: "100%", background: "#c8f135", color: "#0a0a0a", border: "none", padding: "14px", borderRadius: "12px", fontWeight: 700, fontFamily: "Barlow Condensed, sans-serif", fontSize: "15px", cursor: "pointer" },
-  btnDisable: { width: "100%", background: "transparent", color: "#555", border: "1px solid #222", padding: "14px", borderRadius: "12px", fontWeight: 700, fontFamily: "Barlow Condensed, sans-serif", fontSize: "15px", cursor: "pointer" },
+  statusBadgeActive: { display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(200, 241, 53, 0.1)", color: "#c8f135", fontSize: "11px", fontWeight: 800, padding: "6px 12px", borderRadius: "20px", alignSelf: "flex-start", border: "1px solid rgba(200, 241, 53, 0.2)" },
+  statusBadgeInactive: { display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(255, 68, 68, 0.1)", color: "#E24B4A", fontSize: "11px", fontWeight: 800, padding: "6px 12px", borderRadius: "20px", alignSelf: "flex-start", border: "1px solid rgba(255, 68, 68, 0.2)" },
+  sectionTitle: { color: "#f0f0f0", fontFamily: "Barlow Condensed, sans-serif", fontSize: "22px", fontWeight: 800, margin: 0, letterSpacing: "-0.01em" },
+  statusDesc: { color: "#555", fontSize: "13px", lineHeight: "1.6", marginBottom: "20px", fontWeight: 400 },
+  btnEnable: { width: "100%", background: "#c8f135", color: "#0a0a0a", border: "none", padding: "16px", borderRadius: "14px", fontWeight: 800, fontFamily: "Barlow Condensed, sans-serif", fontSize: "16px", cursor: "pointer", transition: "transform 0.2s active" },
+  btnDisable: { width: "100%", background: "transparent", color: "#666", border: "1px solid #333", padding: "16px", borderRadius: "14px", fontWeight: 800, fontFamily: "Barlow Condensed, sans-serif", fontSize: "16px", cursor: "pointer" },
   section: { marginBottom: "30px" },
   sectionHeader: { color: "#555", fontFamily: "Barlow Condensed, sans-serif", fontSize: "13px", fontWeight: 700, letterSpacing: ".1em", marginBottom: "12px" },
   configCard: { background: "#161616", border: "1px solid #222", borderRadius: "16px", padding: "16px" },
@@ -150,7 +194,20 @@ const styles = {
   configLabel: { display: "block", color: "#f0f0f0", fontWeight: 600, fontSize: "14px" },
   configDesc: { color: "#555", fontSize: "11px", margin: 0 },
   timeInput: { background: "#0a0a0a", border: "1px solid #222", color: "#f0f0f0", padding: "8px", borderRadius: "8px", fontSize: "14px", outline: "none" },
-  saveBtn: { width: "100%", background: "#1e1e1e", color: "#ccc", border: "none", padding: "10px", borderRadius: "8px", fontSize: "12px", fontWeight: 700, cursor: "pointer" },
+  saveBtn: { 
+    width: "100%", 
+    background: "#222", 
+    color: "#c8f135", 
+    border: "1px solid #333", 
+    padding: "12px", 
+    borderRadius: "12px", 
+    fontSize: "13px", 
+    fontWeight: 700, 
+    fontFamily: "Barlow Condensed, sans-serif",
+    cursor: "pointer",
+    textTransform: "uppercase" as const,
+    transition: "all 0.2s ease"
+  },
   deviceList: { display: "flex", flexDirection: "column" as const, gap: "10px" },
   deviceCard: { background: "#161616", border: "1px solid #222", borderRadius: "12px", padding: "12px 16px", display: "flex", alignItems: "center", gap: "14px" },
   deviceName: { display: "block", color: "#f0f0f0", fontSize: "13px", fontWeight: 600 },
