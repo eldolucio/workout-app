@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
 
-type AnimationType = string;
+type AnimationType = 'Puxada Frente' | 'Supino Reto' | 'Agachamento' | 'Rosca Direta' | 'Remada Curvada' | 'Desenvolvimento' | string;
 
 interface Props {
   name: AnimationType;
@@ -21,6 +19,11 @@ const styles = {
     width: '100%',
     maxWidth: '320px',
     margin: '0 auto',
+  },
+  svg: {
+    width: '160px',
+    height: '230px',
+    overflow: 'visible',
   },
   label: {
     marginTop: '1.5rem',
@@ -40,85 +43,116 @@ const styles = {
   }
 };
 
-export default function ExerciseAnimation({ name }: Props) {
-  const [videoId, setVideoId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+const keyframes = `
+  @keyframes pull { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(40px); } }
+  @keyframes press { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-50px); } }
+  @keyframes squat { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(30px) scaleY(0.7); } }
+  @keyframes curl { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-100deg); } }
+  @keyframes row { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-20px, -20px); } }
+  @keyframes overhead { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-60px); } }
+`;
 
-  useEffect(() => {
-    async function fetchVideo() {
-      try {
-        setLoading(true);
-        const res = await fetch(`/api/youtube?q=${encodeURIComponent(name)}`);
-        const data = await res.json();
-        
-        if (data.videoId) {
-           setVideoId(data.videoId);
-        } else {
-           setError(true);
-        }
-      } catch (err) {
-        console.error(err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchVideo();
-  }, [name]);
+export default function ExerciseAnimation({ name }: Props) {
+  let content = null;
+  let phaseLabel = "";
+  let tip = "";
+
+  const limbColor = "#e8e8e8";
+  const activeColor = "#c8f135";
+
+  if (name.toLowerCase().includes('puxada')) {
+    phaseLabel = "Puxar até o queixo";
+    tip = "Mantenha o peito aberto e os cotovelos para baixo.";
+    content = (
+      <g style={{ animation: 'pull 1.8s ease-in-out infinite' }}>
+        {/* Torso */}
+        <rect x="75" y="100" width="10" height="50" rx="5" fill={limbColor} />
+        {/* Arms */}
+        <path d="M40 60 L75 100 M120 60 L85 100" stroke={limbColor} strokeWidth="6" strokeLinecap="round" />
+        {/* Bar */}
+        <rect x="30" y="55" width="100" height="6" rx="3" fill={activeColor} />
+      </g>
+    );
+  } else if (name.toLowerCase().includes('supino')) {
+    phaseLabel = "Empurre com explosão";
+    tip = "Escápulas retraídas e pés firmes no chão.";
+    content = (
+      <g style={{ animation: 'press 1.8s ease-in-out infinite' }}>
+         {/* Bar */}
+         <rect x="30" y="120" width="100" height="6" rx="3" fill={activeColor} />
+         {/* Hands/Forearms */}
+         <path d="M50 125 L50 160 M110 125 L110 160" stroke={limbColor} strokeWidth="6" strokeLinecap="round" />
+      </g>
+    );
+  } else if (name.toLowerCase().includes('agachamento')) {
+    phaseLabel = "Desça até 90 graus";
+    tip = "Calcanhares colados no chão, foco no quadril.";
+    content = (
+      <g style={{ animation: 'squat 1.8s ease-in-out infinite', transformOrigin: 'center bottom' }}>
+         {/* Torso */}
+         <rect x="75" y="80" width="10" height="60" rx="5" fill={limbColor} />
+         {/* Legs */}
+         <path d="M75 140 L60 180 L60 220 M85 140 L100 180 L100 220" stroke={limbColor} strokeWidth="8" fill="none" strokeLinejoin="round" />
+         {/* Bar on back */}
+         <rect x="40" y="85" width="80" height="6" rx="3" fill={activeColor} />
+      </g>
+    );
+  } else if (name.toLowerCase().includes('rosca')) {
+    phaseLabel = "Contraia o bíceps";
+    tip = "Cotovelos travados na lateral do corpo.";
+    content = (
+      <g>
+        {/* Torso */}
+        <rect x="75" y="80" width="10" height="80" rx="5" fill={limbColor} />
+        {/* Upper Arm */}
+        <line x1="80" y1="90" x2="80" y2="130" stroke={limbColor} strokeWidth="6" />
+        {/* Lower Arm & Dumbbell */}
+        <g style={{ transformOrigin: '80px 130px', animation: 'curl 1.8s ease-in-out infinite' }}>
+          <line x1="80" y1="130" x2="110" y2="130" stroke={activeColor} strokeWidth="6" strokeLinecap="round" />
+          <circle cx="110" cy="130" r="8" fill={activeColor} />
+        </g>
+      </g>
+    );
+  } else if (name.toLowerCase().includes('remada')) {
+    phaseLabel = "Puxe em direção ao umbigo";
+    tip = "Tronco inclinado, puxe com o cotovelo.";
+    content = (
+      <g style={{ transform: 'rotate(20deg)', transformOrigin: 'center' }}>
+        {/* Torso */}
+        <rect x="75" y="80" width="10" height="70" rx="5" fill={limbColor} />
+        {/* Arms pulling */}
+        <g style={{ animation: 'row 1.8s ease-in-out infinite' }}>
+          <path d="M80 100 L110 130" stroke={limbColor} strokeWidth="6" strokeLinecap="round" />
+          <rect x="100" y="125" width="30" height="6" rx="3" fill={activeColor} />
+        </g>
+      </g>
+    );
+  } else if (name.toLowerCase().includes('desenvolvimento')) {
+     phaseLabel = "Extensão total acima da cabeça";
+     tip = "Cuidado para não arquear demais a lombar.";
+     content = (
+       <g style={{ animation: 'overhead 1.8s ease-in-out infinite' }}>
+          {/* Bar */}
+          <rect x="30" y="80" width="100" height="6" rx="3" fill={activeColor} />
+          {/* Torso */}
+          <rect x="75" y="120" width="10" height="60" rx="5" fill={limbColor} />
+       </g>
+     );
+  } else {
+    phaseLabel = name;
+    tip = "Foco na execução e respiração.";
+    content = <circle cx="80" cy="115" r="30" fill={activeColor} opacity="0.5" />;
+  }
 
   return (
     <div style={styles.container} onClick={(e) => e.stopPropagation()}>
-      <h3 style={{
-        fontFamily: 'Barlow Condensed',
-        color: '#c8f135',
-        fontSize: '1.25rem',
-        textTransform: 'uppercase',
-        marginBottom: '0.5rem',
-        alignSelf: 'flex-start'
-      }}>
-        {name}
-      </h3>
-      <p style={{ color: '#aaa', fontSize: '0.75rem', marginBottom: '1rem', alignSelf: 'flex-start' }}>
-        Aprenda a execução correta:
-      </p>
-
-      {/* YouTube Video Section */}
-      <div style={{ width: '100%', height: '200px', background: '#000', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: '#c8f135' }}>
-            <Loader2 size={24} style={{ animation: 'spin 1.5s linear infinite' }} />
-            <span style={{ fontFamily: 'Barlow Condensed', fontSize: '0.875rem' }}>Buscando tutorial...</span>
-          </div>
-        ) : error || !videoId ? (
-          <span style={{ color: '#ff4444', fontFamily: 'Barlow', fontSize: '0.875rem' }}>Vídeo não encontrado.</span>
-        ) : (
-          <iframe
-            width="100%"
-            height="100%"
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title={name}
-          ></iframe>
-        )}
-      </div>
-      
-      <p style={{
-        marginTop: '1.5rem',
-        fontSize: '0.75rem',
-        color: '#555',
-        textAlign: 'center',
-        fontFamily: 'Barlow',
-        width: '100%',
-      }}>
-        Toque fora do card para fechar
-      </p>
-
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-      `}} />
+      <style>{keyframes}</style>
+      <svg viewBox="0 0 160 230" style={styles.svg}>
+        <rect width="160" height="230" fill="transparent" />
+        {content}
+      </svg>
+      <span style={styles.label}>{phaseLabel}</span>
+      <p style={styles.tip}>{tip}</p>
     </div>
   );
 }
