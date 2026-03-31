@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import { TrainingSheet } from "@/types";
-import { Plus, ChevronRight, ListChecks } from "lucide-react";
+import { Plus, ChevronRight, ListChecks, Trash2 } from "lucide-react";
 
 const styles = {
   container: {
@@ -96,6 +96,25 @@ export default function FichasPage() {
     fetchSheets();
   }, [router]);
 
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // Prevenir clique no card se futuramente tiver navegação
+    
+    if (!window.confirm("Certeza que deseja excluir esta ficha? Todas as sessões de treino vinculadas também podem ser afetadas.")) return;
+    
+    // Atualiza estado otimisticamente
+    setSheets(prev => prev.filter(s => s.id !== id));
+    
+    const { error } = await supabase
+      .from('training_sheets')
+      .delete()
+      .eq('id', id);
+      
+    if (error) {
+      alert("Erro ao excluir ficha: " + error.message);
+      // Opcional: recarregar as fichas do banco em caso de erro
+    }
+  };
+
   return (
     <div style={styles.container}>
       <header style={styles.header}>
@@ -115,7 +134,15 @@ export default function FichasPage() {
                   {sheet.is_active ? "Ativa" : "Arquivada"} • Criada em {new Date(sheet.created_at).toLocaleDateString()}
                 </span>
               </div>
-              <ChevronRight size={18} color="#222" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <button 
+                  onClick={(e) => handleDelete(e, sheet.id)}
+                  style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: "8px" }}
+                >
+                  <Trash2 size={20} color="#E24B4A" />
+                </button>
+                <ChevronRight size={18} color="#222" />
+              </div>
             </div>
           ))
         ) : !loading ? (
