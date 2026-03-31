@@ -1,6 +1,5 @@
 export const dynamic = 'force-dynamic'
 import { createClient } from "@supabase/supabase-js";
-import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -9,12 +8,10 @@ export async function POST(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-
   try {
     const { bucketPath, userId, name } = await req.json();
 
-    // 1. Baixar a imagem do Supabase Storage como buffer
+    // 1. Baixar a imagem do Supabase Storage
     const { data: fileData, error: downloadError } = await supabase.storage
       .from("workout-sheets")
       .download(bucketPath);
@@ -26,9 +23,9 @@ export async function POST(req: Request) {
     // 2. Converter para base64
     const arrayBuffer = await fileData.arrayBuffer();
     const base64Image = Buffer.from(arrayBuffer).toString("base64");
-    const mimeType = (fileData.type || "image/jpeg") as "image/jpeg" | "image/png" | "image/webp";
+    const mimeType = fileData.type || "image/jpeg";
 
-    // 3. Chamar o Gemini 1.5 Flash com visão
+    // 3. Chamar Gemini via REST API v1 diretamente (sem SDK)
     const prompt = `Você é um especialista em leitura de fichas de treino de academia.
 Analise esta imagem e extraia TODOS os exercícios presentes.
 Agrupe por dia/treino (ex: "TREINO A", "TREINO B") se houver divisão.
@@ -51,25 +48,37 @@ Retorne APENAS um JSON válido com esta estrutura exata (sem markdown, sem expli
   ]
 }`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt },
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
             {
-              inlineData: {
-                mimeType: mimeType,
-                data: base64Image,
-              },
+              parts: [
+                { text: prompt },
+                {
+                  inline_data: {
+                    mime_type: mimeType,
+                    data: base64Image,
+                  },
+                },
+              ],
             },
           ],
-        },
-      ],
-    });
+        }),
+      }
+    );
 
-    const resultText = (response.text ?? "")
+    if (!geminiRes.ok) {
+      const errBody = await geminiRes.text();
+      throw new Error(errBody);
+    }
+
+    const geminiJson = await geminiRes.json();
+    const rawText = geminiJson.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const resultText = rawText
       .replace(/```json/g, "")
       .replace(/```/g, "")
       .trim();
