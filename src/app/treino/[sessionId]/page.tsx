@@ -151,6 +151,9 @@ const styles = {
     alignItems: "center",
     gap: "8px",
   },
+  setupBtn: {
+    // Other styles can remain, but let's just make sure we don't break styles block since I'm only modifying the component logic below.
+  },
   modal: {
     position: "fixed" as const,
     top: 0,
@@ -177,6 +180,8 @@ const styles = {
     marginTop: "1rem",
   },
 };
+
+import { PlayCircle } from "lucide-react";
 
 export default function WorkoutSessionPage() {
   const { sessionId } = useParams();
@@ -378,8 +383,9 @@ export default function WorkoutSessionPage() {
         <div style={styles.activeCard}>
           <div style={styles.exerciseHeader}>
             <div>
-              <h2 style={styles.exerciseName} onClick={() => setShowAnimation(true)}>
+              <h2 style={{...styles.exerciseName, display: "flex", alignItems: "center", gap: "8px"}} onClick={() => setShowAnimation(true)}>
                 {currentExercise.name}
+                <PlayCircle size={24} color="#c8f135" style={{ minWidth: 24 }} />
               </h2>
               <span style={styles.muscleGroup}>{currentExercise.muscle_group}</span>
             </div>

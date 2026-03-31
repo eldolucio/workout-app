@@ -145,14 +145,55 @@ export default function ExerciseAnimation({ name }: Props) {
   }
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} onClick={(e) => e.stopPropagation()}>
       <style>{keyframes}</style>
-      <svg viewBox="0 0 160 230" style={styles.svg}>
-        <rect width="160" height="230" fill="transparent" />
-        {content}
-      </svg>
-      <span style={styles.label}>{phaseLabel}</span>
-      <p style={styles.tip}>{tip}</p>
+      
+      {/* Fallback Animation (Optional) */}
+      <div style={{ display: 'none' }}>
+         <svg viewBox="0 0 160 230" style={styles.svg}>
+           <rect width="160" height="230" fill="transparent" />
+           {content}
+         </svg>
+      </div>
+
+      <h3 style={{
+        fontFamily: 'Barlow Condensed',
+        color: '#c8f135',
+        fontSize: '1.25rem',
+        textTransform: 'uppercase',
+        marginBottom: '0.5rem',
+        alignSelf: 'flex-start'
+      }}>
+        {name}
+      </h3>
+      <p style={{ color: '#aaa', fontSize: '0.75rem', marginBottom: '1rem', alignSelf: 'flex-start' }}>
+        Aprenda a execução correta:
+      </p>
+
+      {/* YouTube Dynamic Search Embed */}
+      <iframe
+        width="100%"
+        height="220"
+        src={`https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(name + " exercício musculação execução correta")}`}
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        style={{ borderRadius: '12px', background: '#000' }}
+      ></iframe>
+
+      <span style={{...styles.label, marginTop: '1rem'}}>{phaseLabel}</span>
+      <p style={{...styles.tip, marginBottom: '0'}}>{tip}</p>
+      
+      <p style={{
+        marginTop: '1.5rem',
+        fontSize: '0.75rem',
+        color: '#666',
+        textAlign: 'center',
+        fontFamily: 'Barlow',
+        width: '100%',
+      }}>
+        Toque fora do card para fechar
+      </p>
     </div>
   );
 }
