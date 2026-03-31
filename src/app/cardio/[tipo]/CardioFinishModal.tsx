@@ -89,6 +89,7 @@ export default function CardioFinishModal({
       })
     } catch(e) { console.error("Erro gamificação", e) }
 
+    localStorage.removeItem(`cardio_backup_${tipo}`)
     router.replace('/home')
   }
 

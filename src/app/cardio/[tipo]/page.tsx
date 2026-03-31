@@ -207,6 +207,31 @@ export default function CardioExecutionPage() {
 
   // Dispositivo BT
   const btDevice = useRef<BluetoothDevice | null>(null)
+  const lastTickTime = useRef<number | null>(null)
+
+  // Recupera backup de fechamento acidental
+  useEffect(() => {
+    const saved = localStorage.getItem(`cardio_backup_${tipo}`)
+    if (saved) {
+      try {
+        const { savedSeconds, lastUpdated } = JSON.parse(saved)
+        if (Date.now() - lastUpdated < 4 * 60 * 60 * 1000 && savedSeconds > 0) {
+          if (confirm("Você tem uma sessão em progresso. Deseja restaurar o tempo?")) {
+            setSeconds(savedSeconds)
+          } else {
+            localStorage.removeItem(`cardio_backup_${tipo}`)
+          }
+        }
+      } catch (e) {}
+    }
+  }, [tipo])
+
+  // Salva backup
+  useEffect(() => {
+    if (seconds > 0) {
+      localStorage.setItem(`cardio_backup_${tipo}`, JSON.stringify({ savedSeconds: seconds, lastUpdated: Date.now() }))
+    }
+  }, [seconds, tipo])
 
   useEffect(() => {
     async function load() {
@@ -237,13 +262,31 @@ export default function CardioExecutionPage() {
   }, [prescribedId])
 
   useEffect(() => {
-    if (paused) return
+    if (paused) {
+      lastTickTime.current = null
+      return
+    }
+    
+    if (!lastTickTime.current) {
+      lastTickTime.current = Date.now()
+    }
+
     const interval = setInterval(() => {
-      setSeconds(s => s + 1)
-      if (currentHr > 0) {
-         setHrHistory(prev => [...prev, currentHr])
+      const now = Date.now()
+      if (!lastTickTime.current) lastTickTime.current = now
+      
+      const diffMs = now - lastTickTime.current
+      if (diffMs >= 1000) {
+        const diffSeconds = Math.floor(diffMs / 1000)
+        setSeconds(s => s + diffSeconds)
+        lastTickTime.current += diffSeconds * 1000
+        
+        if (currentHr > 0) {
+           setHrHistory(prev => [...prev, ...Array(diffSeconds).fill(currentHr)])
+        }
       }
     }, 1000)
+    
     return () => clearInterval(interval)
   }, [paused, currentHr])
 

@@ -182,6 +182,41 @@ export default function HiitExecution({ prescribedId }: { prescribedId: string |
   const [finished, setFinished] = useState(false)
   
   const btDevice = useRef<BluetoothDevice | null>(null)
+  const lastTickTime = useRef<number | null>(null)
+
+  // Recupera backup
+  useEffect(() => {
+    const saved = localStorage.getItem(`cardio_backup_hiit`)
+    if (saved) {
+      try {
+        const { savedSeconds, lastRound, lastPhase, savedTimeLeft, lastUpdated } = JSON.parse(saved)
+        if (Date.now() - lastUpdated < 4 * 60 * 60 * 1000 && savedSeconds > 0 && !finished) {
+          if (confirm("Você tem um HIIT em progresso. Deseja restaurar?")) {
+            setTotalSecondsElapsed(savedSeconds)
+            setCurrentRound(lastRound)
+            setPhase(lastPhase)
+            setTimeLeft(savedTimeLeft)
+            setStarted(true)
+          } else {
+            localStorage.removeItem(`cardio_backup_hiit`)
+          }
+        }
+      } catch (e) {}
+    }
+  }, []) // executa ao montar
+
+  // Salva backup
+  useEffect(() => {
+    if (totalSecondsElapsed > 0 && !finished) {
+      localStorage.setItem(`cardio_backup_hiit`, JSON.stringify({ 
+        savedSeconds: totalSecondsElapsed,
+        lastRound: currentRound,
+        lastPhase: phase,
+        savedTimeLeft: timeLeft,
+        lastUpdated: Date.now() 
+      }))
+    }
+  }, [totalSecondsElapsed, currentRound, phase, timeLeft, finished])
 
   useEffect(() => {
     async function load() {
@@ -205,32 +240,49 @@ export default function HiitExecution({ prescribedId }: { prescribedId: string |
   }, [prescribedId])
 
   useEffect(() => {
-    if (paused) return
+    if (paused) {
+      lastTickTime.current = null
+      return
+    }
+    
+    if (!lastTickTime.current) {
+      lastTickTime.current = Date.now()
+    }
+
     const interval = setInterval(() => {
-      setTotalSecondsElapsed(s => s + 1)
-      if (currentHr > 0) setHrHistory(prev => [...prev, currentHr])
+      const now = Date.now()
+      if (!lastTickTime.current) lastTickTime.current = now
       
-      setTimeLeft(t => {
-        if (t > 1) return t - 1
+      const diffMs = now - lastTickTime.current
+      // Se tiver mais de 1000ms atrasado (ex: o app foi pro background)
+      if (diffMs >= 1000) {
+        const diffSeconds = 1 // Processa de 1 em 1 segundo para não quebrar a máquina de estados
+        lastTickTime.current += diffSeconds * 1000
         
-        // Fase mudou
-        if (phase === 'work') {
-          if (currentRound >= roundsTotal) {
-            // Terminou tudo
-            setPaused(true)
-            setFinished(true)
-            return 0
+        setTotalSecondsElapsed(s => s + diffSeconds)
+        if (currentHr > 0) setHrHistory(prev => [...prev, currentHr])
+        
+        setTimeLeft(t => {
+          if (t > 1) return t - 1
+          
+          if (phase === 'work') {
+            if (currentRound >= roundsTotal) {
+              setPaused(true)
+              setFinished(true)
+              return 0
+            } else {
+              setPhase('rest')
+              return restTime
+            }
           } else {
-            setPhase('rest')
-            return restTime
+            setPhase('work')
+            setCurrentRound(r => r + 1)
+            return workTime
           }
-        } else {
-          setPhase('work')
-          setCurrentRound(r => r + 1)
-          return workTime
-        }
-      })
-    }, 1000)
+        })
+      }
+    }, 200) // Roda a 200ms para fazer o "catch-up" (avançar rapido) do tempo q ficou pausado no backgroud
+    
     return () => clearInterval(interval)
   }, [paused, currentHr, phase, currentRound, roundsTotal, workTime, restTime])
 
