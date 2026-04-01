@@ -33,8 +33,14 @@ export default function NotificacoesConfigPage() {
 
   const handleSaveReminder = async () => {
     setSaving(true)
-    await supabase.from('profiles').update({ reminder_time: reminderTime }).eq('id', userId)
+    const { error } = await supabase.from('profiles').update({ reminder_time: reminderTime }).eq('id', userId)
+    
     setSaving(false)
+    if (error) {
+      alert("Erro ao salvar: " + error.message)
+      return
+    }
+
     setShowToast(true)
     setTimeout(() => setShowToast(false), 3000)
   }
