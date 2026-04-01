@@ -2,6 +2,13 @@
 
 Transforme seu treino em uma experiência épica. O WorkoutApp não é apenas um rastreador de exercícios; é o seu parceiro de evolução pessoal, onde cada repetição conta para o seu nível global.
 
+<div align="center">
+  <br />
+  <a href="https://workout-app-ruby-eta.vercel.app" target="_blank">
+    <img src="https://img.shields.io/badge/ACESSAR%20O%20APP-NEON%20VIBE-c8f135?style=for-the-badge&logoScale=1.2" alt="Acessar o App">
+  </a>
+</div>
+
 ---
 
 ## 📱 Visão Geral
