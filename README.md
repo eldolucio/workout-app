@@ -4,9 +4,10 @@ Transforme seu treino em uma experiência épica. O WorkoutApp não é apenas um
 
 <div align="center">
   <br />
-  <a href="https://workout-app-ruby-eta.vercel.app" target="_blank">
-    <img src="https://img.shields.io/badge/ACESSAR%20O%20APP-NEON%20VIBE-c8f135?style=for-the-badge&logoScale=1.2" alt="Acessar o App">
+  <a href="https://workout-app-ruby-eta.vercel.app" target="_blank" style="text-decoration: none;">
+    <img src="https://img.shields.io/badge/🚀%20ABRIR%20APLICATIVO%20AGORA-CLICK%20HERE-c8f135?style=for-the-badge&logoScale=2.0&labelColor=000" height="60" alt="Abrir Aplicativo">
   </a>
+  <p><i>Sua jornada fitness começa com um clique.</i></p>
 </div>
 
 ---
