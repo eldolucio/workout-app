@@ -3,6 +3,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import { InstallBanner } from "@/components/InstallBanner";
 import { ChangelogModal } from "@/components/ChangelogModal";
+import { OnboardingModal } from "@/components/OnboardingModal";
 
 const inter = Inter({ subsets: ["latin"] });
 export const viewport = {
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body className={inter.className} style={{ margin: 0, padding: 0 }}>
         <InstallBanner />
         <ChangelogModal />
+        <OnboardingModal onComplete={() => {}} />
         {children}
         <script
           dangerouslySetInnerHTML={{
