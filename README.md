@@ -1,77 +1,69 @@
-# 🏋️‍♂️ WorkoutApp — Seu treino, sua regra.
+# 🏋️‍♂️ WorkoutApp: Sua Jornada Fitness, Gamificada.
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-Database-blueviolet?logo=supabase)](https://supabase.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-O **WorkoutApp** é uma plataforma PWA (Progressive Web App) de alta performance desenhada para entusiastas fitness que buscam digitalizar sua rotina sem perder a flexibilidade. Com foco em **Gamificação**, **IA** e **Aura RPG**, o app transforma cada gota de suor em pontos de experiência (XP).
+Transforme seu treino em uma experiência épica. O WorkoutApp não é apenas um rastreador de exercícios; é o seu parceiro de evolução pessoal, onde cada repetição conta para o seu nível global.
 
 ---
 
-## ✨ Principais Diferenciais
+## 📱 Visão Geral
 
-- **📸 Importação Inteligente (OCR)**: Tire uma foto da sua ficha de papel e nossa IA (Google Gemini) extrai automaticamente exercícios, séries, repetições e cardios.
-- **🎮 Gamificação RPG**: Evolua seu nível (Level Up), desbloqueie conquistas e mantenha sequências (Streaks) para se manter motivado.
-- **🏃‍♂️ Cardio & HIIT Flexível**: Cronômetros dinâmicos que resistem ao background do celular, com integração Bluetooth para monitoramento de frequência cardíaca em tempo real.
-- **📱 PWA Nativo**: Instale no seu Android ou iOS para uma experiência de tela cheia, offline-first e notificações push de lembretes.
-- **🛡️ Segurança de Dados**: Arquitetura robusta utilizando Supabase Auth e Row Level Security (RLS) para total privacidade.
+O **WorkoutApp** é um PWA (Progressive Web App) moderno, desenhado com uma estética de RPG e foco em performance. Ele foi construído para quem leva o treino a sério, mas não abre mão da praticidade e da diversão de subir de nível.
 
----
-
-## 🛠️ Tecnologias Utilizadas
-
-- **Frontend**: Next.js 14 (App Router), TypeScript, Lucide Icons.
-- **Design System**: Vanilla CSS com foco em estética *Dark Mode* e micro-animações.
-- **Backend & Auth**: Supabase (PostgreSQL), Next.js API Routes.
-- **IA**: Google Gemini Pro Vision API para processamento de fichas de treino.
-- **Sensores**: Web Bluetooth API para integração com cintas cardíacas.
+<div align="center">
+  <img src="public/screenshots/home.png" width="350" alt="Home Screen Mockup">
+  <img src="public/screenshots/hiit.png" width="350" alt="HIIT Screen Mockup">
+</div>
 
 ---
 
-## 📦 Como Instalar e Rodar
+## 🔥 Funcionalidades que Vão te Impressionar
 
-1. **Clone o repositório:**
-   ```bash
-   git clone https://github.com/eldolucio/workout-app.git
-   cd workout-app
-   ```
+### 📸 Importação de Ficha via IA
+Esqueça o papel e a caneta. Basta tirar uma foto da sua ficha de treino e nossa inteligência artificial processa tudo instantaneamente:
+- Identificação de exercícios, séries e repetições.
+- Separação automática entre Musculação e Cardio.
+- Configuração de descansos e observações.
 
-2. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
+### 🎮 Gamificação Real (Level Up)
+Seu esforço físico se torna progresso digital:
+- **Ganhe XP**: Cada série concluída e cada minuto de cardio rende pontos.
+- **Nível e Títulos**: Comece como "Iniciante" e chegue ao rank "Imortal".
+- **Conquistas**: Desbloqueie medalhas por consistência, intensidade e metas alcançadas.
+- **Streaks**: Mantenha o fogo aceso com sequências de dias consecutivos.
 
-3. **Configure as variáveis de ambiente:**
-   Crie um arquivo `.env.local` na raiz com:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=seu_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave_anon
-   SUPABASE_SERVICE_ROLE_KEY=sua_chave_service_role
-   GEMINI_API_KEY=sua_chave_google_gemini
-   VAPID_PUBLIC_KEY=sua_chave_publica_push
-   VAPID_PRIVATE_KEY=sua_chave_privada_push
-   VAPID_EMAIL=seu@email.com
-   ```
-
-4. **Inicie o servidor de desenvolvimento:**
-   ```bash
-   npm run dev
-   ```
+### ⏱️ Cardio & HIIT Inteligente
+Um cronômetro que realmente funciona no mundo real:
+- **Resistente ao Celular**: O timer não para mesmo se você mudar de app ou bloquear a tela.
+- **Protocolos HIIT**: Zonas de esforço visualmente distintas (Ação vs. Descanso).
+- **Monitor Cardiaco**: Conecte sua cinta cardíaca via Bluetooth para estatísticas precisas.
 
 ---
 
-## 🔒 Hardening & Segurança
+## 🚀 Como Começar a Treinar
 
-Para garantir a integridade do sistema de XP e a privacidade dos dados, consulte o nosso [Guia de Hardening](./HARDENING_REPORT.md) contendo as políticas de banco de dados recomendadas.
-
----
-
-## 🚀 Próximos Passos
-
-- [ ] Modo Offline completo via IndexedDB.
-- [ ] Gráficos de volume de treinamento semanal.
-- [ ] Exportação de fichas para PDF/Excel.
+1. **Acesso Rápido**: Acesse o link do app no seu navegador.
+2. **Instalação PWA**: No iPhone (Compartilhar > Tela de Início) ou Android (Menu > Instalar App) para ter o ícone na sua home.
+3. **Importe seu Treino**: Tire foto da sua ficha ou crie uma do zero em segundos.
+4. **Suba de Nível**: Comece a treinar e veja seu XP subir!
 
 ---
 
-Desenvolvido com ❤️ por [Eldo Lucio](https://github.com/eldolucio) e equipe.
+## 🛠️ Tecnologias de Ponta
+
+Nosso App utiliza o que há de mais moderno no desenvolvimento web:
+- **Next.js 14**: Carregamento ultra-rápido e navegação fluida.
+- **Supabase Realtime**: Sincronização instantânea dos seus dados na nuvem.
+- **Google Gemini Pro**: O cérebro por trás da nossa visão computacional.
+- **Web Bluetooth**: Integração direta com hardware esportivo.
+
+---
+
+## 👥 Contribuição e Feedback
+
+Este é um projeto feito de quem treina para quem treina. Se você tem sugestões ou encontrou algum bug, abra uma issue ou mande um pull request no nosso [repositório oficial](https://github.com/eldolucio/workout-app).
+
+---
+
+<div align="center">
+  <p><b>"Não pare quando estiver cansado, pare quando terminar."</b></p>
+  <img src="public/icon-192.png" width="48" alt="App Icon">
+</div>
