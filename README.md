@@ -1,88 +1,85 @@
-# 🏋️‍♂️ WorkoutApp: Sua Jornada Fitness, Gamificada.
+# 🏋️‍♂️ WorkoutApp: Seu App de Treino Inteligente com IA e Gamificação
 
-Transforme seu treino em uma experiência épica. O WorkoutApp não é apenas um rastreador de exercícios; é o seu parceiro de evolução pessoal, onde cada repetição conta para o seu nível global.
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database-blueviolet?logo=supabase)](https://supabase.com/)
+[![Gemini AI](https://img.shields.io/badge/Gemini%20AI-OCR-orange?logo=google-gemini)](https://deepmind.google/technologies/gemini/)
+
+O **WorkoutApp** é a solução definitiva de **rastreamento de fitness** e **musculação**. Combinando a potência da **Inteligência Artificial** com uma experiência de **gamificação RPG**, este **PWA (Progressive Web App)** transforma sua rotina de academia em uma jornada épica de evolução.
 
 <div align="center">
   <br />
   <a href="https://workout-app-ruby-eta.vercel.app" target="_blank" style="text-decoration: none;">
-    <img src="https://img.shields.io/badge/🚀%20ABRIR%20APLICATIVO%20AGORA-CLICK%20HERE-c8f135?style=for-the-badge&logoScale=2.0&labelColor=000" height="60" alt="Abrir Aplicativo">
+    <img src="https://img.shields.io/badge/🚀%20ABRIR%20APLICATIVO%20AGORA-CLICK%20HERE-c8f135?style=for-the-badge&logoScale=2.0&labelColor=000" height="60" alt="Abrir Aplicativo Fitness">
   </a>
-  <p><i>Sua jornada fitness começa com um clique.</i></p>
+  <p><i>Sua evolução física começa agora.</i></p>
 </div>
 
 ---
 
-## 📱 Visão Geral
+## 📱 Transforme seu Treino com Tecnologia Premium
 
-O **WorkoutApp** é um PWA (Progressive Web App) moderno, desenhado com uma estética de RPG e foco em performance. Ele foi construído para quem leva o treino a sério, mas não abre mão da praticidade e da diversão de subir de nível.
+Se você busca um **app de treino para iPhone ou Android** que seja leve, rápido e inteligente, o WorkoutApp foi feito para você. 
 
 <div align="center">
-  <img src="public/screenshots/home.png" width="350" alt="Home Screen Mockup">
-  <img src="public/screenshots/hiit.png" width="350" alt="HIIT Screen Mockup">
+  <img src="public/screenshots/home.png" width="350" alt="Interface Next.js Fitness App">
+  <img src="public/screenshots/hiit.png" width="350" alt="Timer HIIT Dinâmico">
 </div>
 
 ---
 
-## 📲 Como Instalar o App (Passo a Passo)
+## 🔥 Funcionalidades Revolucionárias
 
-Como o WorkoutApp é um PWA, você não precisa da App Store ou Google Play. Instale direto do seu navegador para ter uma experiência de tela cheia e notificações.
+### 📸 Digitalização de Fichas com OCR (IA)
+Utilizamos **Inteligência Artificial (Google Gemini)** para que você possa importar sua ficha de treino física apenas tirando uma foto. O sistema identifica automaticamente exercícios de musculação, séries e treinos de cardio.
 
-### 🍏 Para iPhone (iOS)
-Use o **Safari** para acessar o app e siga estes passos:
+### 🎮 RPG Fitness & Gamificação
+Mantenha a motivação alta com um sistema de progressão real:
+- **XP de Treino**: Ganhe experiência real treinando.
+- **Level Up**: Suba de nível e conquiste novos títulos.
+- **Conquistas Lendárias**: Desbloqueie badges por consistência e intensidade.
 
+### ⏱️ Cronômetro HIIT & Cardio Bluetooth
+Um sistema de **Cardio Training** robusto que permite integrar cintas cardíacas via **Bluetooth** e possui um motor de timer resiliente que não para nunca, mesmo no background.
+
+---
+
+## 📲 Guia de Instalação Rápida (PWA)
+
+### 🍏 Instalar no iOS (iPhone)
+1. Abra no Safari.
+2. Toque em **Compartilhar** e selecione **"Adicionar à Tela de Início"**.
 <div align="center">
-  <img src="public/screenshots/ios-guide.png" width="800" alt="iOS Installation Guide">
+  <img src="public/screenshots/ios-guide.png" width="700" alt="Como instalar PWA no iPhone">
 </div>
 
-1. Toque no botão de **Compartilhar** (ícone do meio na barra inferior).
-2. Role para baixo e selecione **"Adicionar à Tela de Início"**.
-3. Confirme o nome e toque em **"Adicionar"**. O ícone aparecerá instantaneamente na sua tela!
-
----
-
-### 🤖 Para Android
-Use o **Google Chrome** para acessar o app e siga estes passos:
-
+### 🤖 Instalar no Android
+1. Abra no Chrome.
+2. Toque nos **três pontos** e selecione **"Instalar Aplicativo"**.
 <div align="center">
-  <img src="public/screenshots/android-guide.png" width="800" alt="Android Installation Guide">
+  <img src="public/screenshots/android-guide.png" width="700" alt="Como instalar PWA no Android">
 </div>
 
-1. Toque nos **três pontos (⋮)** no canto superior direito do Chrome.
-2. Localize e toque em **"Instalar Aplicativo"** ou **"Adicionar à Tela Inicial"**.
-3. Aguarde o download e confirme. Pronto! Agora o app se comporta como um nativo.
+---
+
+## 🛠️ Stack Tecnológica (SEO Tags)
+Construído para performance extrema utilizando:
+- **Next.js 14**: Frontend moderno e SEO-friendly.
+- **Supabase**: Banco de dados PostgreSQL e Autenticação.
+- **TypeScript**: Código seguro e escalável.
+- **Vercel**: Hospedagem de alta disponibilidade.
 
 ---
 
-## 🔥 Funcionalidades que Vão te Impressionar
+## 🚀 COMECE SUA JORNADA AGORA
 
-### 📸 Importação de Ficha via IA
-Esqueça o papel e a caneta. Basta tirar uma foto da sua ficha de treino e nossa inteligência artificial processa tudo instantaneamente.
-
-### 🎮 Gamificação Real (Level Up)
-Seu esforço físico se torna progresso digital. Ganhe XP, suba de nível e desbloqueie títulos lendários.
-
-### ⏱️ Cardio & HIIT Inteligente
-Um cronômetro que realmente funciona no mundo real, resistente ao background do celular e com integração Bluetooth.
-
----
-
-## 🛠️ Tecnologias de Ponta
-
-Nosso App utiliza o que há de mais moderno no desenvolvimento web:
-- **Next.js 14**: Carregamento ultra-rápido.
-- **Supabase Realtime**: Sincronização instantânea na nuvem.
-- **Google Gemini Pro**: IA para visão computacional.
-- **Web Bluetooth**: Integração com cintas cardíacas.
-
----
-
-## 👥 Contribuição e Feedback
-
-Este é um projeto feito de quem treina para quem treina. Se você tem sugestões ou encontrou algum bug, abra uma issue no nosso [repositório oficial](https://github.com/eldolucio/workout-app).
-
----
+Não espere mais para digitalizar sua rotina e transformar seu corpo através da constância gamificada.
 
 <div align="center">
-  <p><b>"Não pare quando estiver cansado, pare quando terminar."</b></p>
-  <img src="public/icon-192.png" width="48" alt="App Icon">
+  <br />
+  <a href="https://workout-app-ruby-eta.vercel.app" target="_blank" style="text-decoration: none;">
+    <img src="https://img.shields.io/badge/🔥%20ENTRAR%20NO%20WORKOUTAPP%20GRÁTIS-START%20NOW-c8f135?style=for-the-badge&logoScale=2.5&labelColor=000" height="80" alt="Acessar Treino Digital">
+  </a>
+  <br />
+  <p><b>WorkoutApp — Seu treino, sua regra.</b></p>
+  <img src="public/icon-192.png" width="48" alt="Fitness App Icon">
 </div>
