@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useParams, useRouter } from "next/navigation";
 import SetControls from "@/components/SetControls";
@@ -196,7 +196,9 @@ export default function WorkoutSessionPage() {
   const [showTimer, setShowTimer] = useState(false);
   const [completedSetsInActive, setCompletedSetsInActive] = useState<SessionSet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savingSet, setSavingSet] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const lastTickTime = useRef<number | null>(null);
 
   // Load session
   useEffect(() => {
@@ -241,9 +243,17 @@ export default function WorkoutSessionPage() {
     loadSession();
   }, [sessionId]);
 
-  // Session timer
+  // Session timer (Date.now based for background resilience)
   useEffect(() => {
-    const interval = setInterval(() => setElapsed(e => e + 1), 1000);
+    lastTickTime.current = Date.now();
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const diffS = Math.floor((now - (lastTickTime.current || now)) / 1000);
+      if (diffS >= 1) {
+        setElapsed(e => e + diffS);
+        lastTickTime.current = (lastTickTime.current || now) + (diffS * 1000);
+      }
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -270,43 +280,46 @@ export default function WorkoutSessionPage() {
   };
 
   const handleCompleteSet = async () => {
+    if (savingSet) return;
+    setSavingSet(true);
     const setNumber = completedSetsInActive.length + 1;
     
-    const { data: newSet, error } = await supabase.from("session_sets").insert({
-      session_id: sessionId,
-      exercise_id: currentExercise.id,
-      set_number: setNumber,
-      reps_done: currentReps,
-      weight_used_kg: currentWeight,
-      completed: true,
-    }).select().single();
+    try {
+      const { data: newSet, error } = await supabase.from("session_sets").insert({
+        session_id: sessionId,
+        exercise_id: currentExercise.id,
+        set_number: setNumber,
+        reps_done: currentReps,
+        weight_used_kg: currentWeight,
+        completed: true,
+      }).select().single();
 
-    if (error) {
-       console.error('[supabase] session_sets.insert:', error.message);
-       setErrorMsg(error.message);
-       return;
-    }
-
-    if (newSet) {
-      const updatedSets = [...completedSetsInActive, newSet];
-      setCompletedSetsInActive(updatedSets);
-      
-      // Update exercises list state
-      const newExercises = [...exercises];
-      newExercises[activeIndex].completedSets = updatedSets.length;
-      setExercises(newExercises);
-
-      if (updatedSets.length >= currentExercise.sets) {
-        // Move to next exercise if available
-        if (activeIndex < exercises.length - 1) {
-          setShowTimer(true);
-        } else {
-          // Finished all exercises
-          alert("Treino Concluído!");
-        }
-      } else {
-        setShowTimer(true);
+      if (error) {
+         console.error('[supabase] session_sets.insert:', error.message);
+         setErrorMsg(error.message);
+         return;
       }
+
+      if (newSet) {
+        const updatedSets = [...completedSetsInActive, newSet];
+        setCompletedSetsInActive(updatedSets);
+        
+        const newExercises = [...exercises];
+        newExercises[activeIndex].completedSets = updatedSets.length;
+        setExercises(newExercises);
+
+        if (updatedSets.length >= currentExercise.sets) {
+          if (activeIndex < exercises.length - 1) {
+            setShowTimer(true);
+          } else {
+             // Todos concluídos
+          }
+        } else {
+          setShowTimer(true);
+        }
+      }
+    } finally {
+      setSavingSet(false);
     }
   };
 

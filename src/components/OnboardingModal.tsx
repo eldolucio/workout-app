@@ -41,7 +41,7 @@ const STEPS = [
   }
 ]
 
-export function OnboardingModal({ onComplete }: { onComplete: () => void }) {
+export function OnboardingModal({ onComplete }: { onComplete?: () => void }) {
   const [currentStep, setCurrentStep] = useState(0)
   const [visible, setVisible] = useState(false)
 
@@ -64,7 +64,7 @@ export function OnboardingModal({ onComplete }: { onComplete: () => void }) {
         await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user.id)
       }
       setVisible(false)
-      onComplete()
+      if (onComplete) onComplete()
     }
   }
 
@@ -197,7 +197,7 @@ export function OnboardingModal({ onComplete }: { onComplete: () => void }) {
                onClick={() => {
                  localStorage.setItem('onboarding_seen', 'true')
                  setVisible(false)
-                 onComplete()
+                 if (onComplete) onComplete()
                }}
                style={{
                  width: '100%',

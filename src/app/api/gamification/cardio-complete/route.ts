@@ -1,12 +1,36 @@
+export const dynamic = 'force-dynamic'
+import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
 import { XP_REWARDS, getLevelProgress } from '@/lib/gamification'
 
 export async function POST(req: Request) {
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) { return cookieStore.get(name)?.value }
+      }
+    }
+  )
+
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+
   try {
-    const { userId, durationMin, sessionId, cardioType, avgHr } = await req.json()
-    if (!userId || !sessionId) {
-      return NextResponse.json({ error: 'Missing userId or sessionId' }, { status: 400 })
+    const { durationMin, sessionId, cardioType, avgHr } = await req.json()
+    const userId = session.user.id
+
+    if (!sessionId) {
+      return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 })
     }
 
     let earnedXp = XP_REWARDS.CARDIO_BASE
@@ -22,13 +46,16 @@ export async function POST(req: Request) {
     }
 
     if (avgHr) {
-      // simplistic heart zone check∏∏∏p
-      if (avgHr > 150) earnedXp += XP_REWARDS.HEART_ZONE_4
-      if (avgHr > 170) earnedXp += XP_REWARDS.HEART_ZONE_5
+      // heart zone logic: highest reward wins
+      if (avgHr > 170) {
+        earnedXp += XP_REWARDS.HEART_ZONE_5
+      } else if (avgHr > 150) {
+        earnedXp += XP_REWARDS.HEART_ZONE_4
+      }
     }
 
     // Busca o user_stats
-    const { data: stats, error: statsError } = await supabase
+    const { data: stats, error: statsError } = await supabaseAdmin
       .from('user_stats')
       .select('xp_total, level')
       .eq('user_id', userId)
@@ -41,7 +68,7 @@ export async function POST(req: Request) {
     const { level: newLevel } = getLevelProgress(newXp)
 
     // Atualiza o user_stats
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from('user_stats')
       .update({ xp_total: newXp, level: newLevel })
       .eq('user_id', userId)

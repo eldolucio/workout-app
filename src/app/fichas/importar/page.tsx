@@ -124,10 +124,8 @@ export default function ImportSheetPage() {
 
       if (uploadError) throw uploadError;
 
-      // 2. Animate steps while calling API
-      setTimeout(() => setCurrentStep(1), 1000); // Extracting text
-      setTimeout(() => setCurrentStep(2), 2500); // Identifying exercises
-      
+      // 2. Extract and Process
+      setCurrentStep(1); // Extracting text
       const response = await fetch("/api/ocr", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -135,13 +133,15 @@ export default function ImportSheetPage() {
       });
 
       const resData = await response.json();
-      if (!response.ok) throw new Error(resData.error);
+      if (!response.ok) throw new Error(resData.error || "Erro de processamento na IA");
 
-      setCurrentStep(3); // Saving
-      
+      setCurrentStep(2); // Identifying exercises (Mocking a bit more realistically here)
       setTimeout(() => {
-        router.push("/home");
-      }, 1500);
+        setCurrentStep(3); // Saving
+        setTimeout(() => {
+          router.push("/home");
+        }, 800);
+      }, 800);
 
     } catch (err: any) {
       alert("Erro ao importar: " + err.message);

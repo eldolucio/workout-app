@@ -16,7 +16,6 @@ export const viewport = {
 export const metadata: Metadata = {
   title: 'WorkoutApp — Seu treino, sua regra',
   description: 'App de treinos personalizados com importação de fichas por OCR',
-  manifest: '/manifest.json',
   icons: {
     icon: '/icon-192.png',
     apple: '/apple-icon.png',
@@ -43,7 +42,7 @@ export default function RootLayout({
       <body className={inter.className} style={{ margin: 0, padding: 0 }}>
         <InstallBanner />
         <ChangelogModal />
-        <OnboardingModal onComplete={() => {}} />
+        <OnboardingModal />
         {children}
         <script
           dangerouslySetInnerHTML={{

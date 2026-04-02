@@ -250,36 +250,53 @@ export default function HiitExecution({ prescribedId }: { prescribedId: string |
     }
 
     const interval = setInterval(() => {
-      const now = Date.now()
+      let now = Date.now()
       if (!lastTickTime.current) lastTickTime.current = now
       
-      const diffMs = now - lastTickTime.current
-      // Se tiver mais de 1000ms atrasado (ex: o app foi pro background)
-      if (diffMs >= 1000) {
-        const diffSeconds = 1 // Processa de 1 em 1 segundo para não quebrar a máquina de estados
-        lastTickTime.current += diffSeconds * 1000
-        
-        setTotalSecondsElapsed(s => s + diffSeconds)
+      let diffMs = now - lastTickTime.current
+      
+      // Variáveis locais para simular a mudança de estado síncrona dentro do loop
+      let localTimeLeft = timeLeft
+      let localPhase = phase
+      let localRound = currentRound
+      let localTotalElapsed = totalSecondsElapsed
+      let stateChanged = false
+
+      while (diffMs >= 1000) {
+        lastTickTime.current += 1000
+        diffMs -= 1000
+        localTotalElapsed++
+        stateChanged = true
+
         if (currentHr > 0) setHrHistory(prev => [...prev, currentHr])
         
-        setTimeLeft(t => {
-          if (t > 1) return t - 1
-          
-          if (phase === 'work') {
-            if (currentRound >= roundsTotal) {
+        if (localTimeLeft > 1) {
+          localTimeLeft -= 1
+        } else {
+          // Troca de fase
+          if (localPhase === 'work') {
+            if (localRound >= roundsTotal) {
               setPaused(true)
               setFinished(true)
-              return 0
+              localTimeLeft = 0
+              break // Terminou o HIIT
             } else {
-              setPhase('rest')
-              return restTime
+              localPhase = 'rest'
+              localTimeLeft = restTime
             }
           } else {
-            setPhase('work')
-            setCurrentRound(r => r + 1)
-            return workTime
+            localPhase = 'work'
+            localRound += 1
+            localTimeLeft = workTime
           }
-        })
+        }
+      }
+
+      if (stateChanged) {
+        setTimeLeft(localTimeLeft)
+        setPhase(localPhase)
+        setCurrentRound(localRound)
+        setTotalSecondsElapsed(localTotalElapsed)
       }
     }, 200) // Roda a 200ms para fazer o "catch-up" (avançar rapido) do tempo q ficou pausado no backgroud
     
