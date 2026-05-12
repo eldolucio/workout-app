@@ -31,7 +31,7 @@ function LoginContent() {
           ? "E-mail ou senha incorretos."
           : err.message === "Email not confirmed"
           ? "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada."
-          : "Erro ao entrar. Tente novamente."
+          : `[DEBUG] ${err.message}`
       );
       setLoading(false);
       return;
